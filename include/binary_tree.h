@@ -9,7 +9,7 @@
 typedef struct BTNode_ {
     uint64_t key;
     struct BTNode_ *left;
-    struct BTNode_ *right
+    struct BTNode_ *right;
 } BTNode;
 
 BTNode *in_order_traversal(BTNode *root);
