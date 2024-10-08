@@ -7,23 +7,60 @@
 #include <stdlib.h>
 #include <binary_tree.h>
 
-BTNode *in_order_traversal(BTNode *root)
+void
+in_order_traversal(BTNode *root, BT_traversalcb cb)
 {
-    return NULL;
+    if (NULL == root) {
+        return;
+    }
+
+    in_order_traversal(root->left, cb);
+    cb(root);
+    in_order_traversal(root->right, cb);
 }
 
-BTNode *pre_order_traversal(BTNode *root)
+void
+pre_order_traversal(BTNode *root, BT_traversalcb cb)
 {
-    return NULL;
+    if (NULL == root) {
+        return;
+    }
+
+    cb(root);
+    pre_order_traversal(root->left, cb);
+    pre_order_traversal(root->right, cb);
 }
 
-BTNode *post_order_traversal(BTNode *root)
+void
+post_order_traversal(BTNode *root, BT_traversalcb cb)
 {
-    return NULL;
+    if (NULL == root) {
+        return;
+    }
+
+    post_order_traversal(root->left, cb);
+    post_order_traversal(root->right, cb);
+    cb(root);
 }
 
-BTNode *level_order_traversal(BTNode *root)
+void
+level_order_traversal(BTNode *root, BT_traversalcb cb)
 {
-    return NULL;
+}
+
+BTNode*
+alloc_BT_node(int key)
+{
+    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
+    if (node == NULL) {
+        goto done;
+    }
+
+    node->key = key;
+    node->left = NULL;
+    node->right = NULL;
+
+done:
+    return node;
 }
 
