@@ -50,7 +50,8 @@ simple_q_enqueue(simple_q *q, uint64_t key)
         goto done;
     }
 
-    q->arr[(q->rear++ % q->size)] = key;
+    q->arr[q->rear] = key;
+    q->rear = ((q->rear + 1) % q->size);
 
 done:
     return error;
@@ -65,7 +66,8 @@ simple_q_dequeue(simple_q *q, uint64_t *out)
         goto done;
     }
 
-    *out = q->arr[(q->front++ % q->size)];
+    *out = q->arr[q->front];
+    q->front = ((q->front + 1) % q->size);
 
 done:
     return error;
@@ -75,9 +77,9 @@ bool
 simple_q_is_full(simple_q *q)
 {
     if (q->front < q->rear) {
-        return (q->rear - q->front + 1 == q->size);
+        return (q->rear - q->front == q->size);
     } else {
-        return (q->front - q->rear + 1 == q->size);
+        return (q->front - q->rear  == q->size);
     }
 }
 
