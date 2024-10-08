@@ -6,21 +6,21 @@
 
 #include <stdint.h>
 
-typedef struct BTNode_ {
+typedef struct bt_node_ {
     uint64_t key;
-    struct BTNode_ *left;
-    struct BTNode_ *right;
-} BTNode;
+    struct bt_node_ *left;
+    struct bt_node_ *right;
+} bt_node;
 
-typedef void (*BT_traversalcb)(BTNode *node);
+typedef void (*bt_traversalcb)(bt_node *node);
 
-void in_order_traversal(BTNode *root, BT_traversalcb cb);
-void pre_order_traversal(BTNode *root, BT_traversalcb cb);
-void post_order_traversal(BTNode *root, BT_traversalcb cb);
-void level_order_traversal(BTNode *root, BT_traversalcb cb);
+void in_order_traversal(bt_node *root, bt_traversalcb cb);
+void pre_order_traversal(bt_node *root, bt_traversalcb cb);
+void post_order_traversal(bt_node *root, bt_traversalcb cb);
+void level_order_traversal(bt_node *root, bt_traversalcb cb);
 
-BTNode* alloc_BT_node(int key);
-
+bt_node* alloc_bt_node(int key);
+void free_bt_node(bt_node *node);
 
 
 

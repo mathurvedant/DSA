@@ -4,11 +4,12 @@
  * Binary Tree Data Structure Operations Implementation.
  */
 
-#include <stdlib.h>
 #include <binary_tree.h>
 
+#include <stdlib.h>
+
 void
-in_order_traversal(BTNode *root, BT_traversalcb cb)
+in_order_traversal(bt_node *root, bt_traversalcb cb)
 {
     if (NULL == root) {
         return;
@@ -20,7 +21,7 @@ in_order_traversal(BTNode *root, BT_traversalcb cb)
 }
 
 void
-pre_order_traversal(BTNode *root, BT_traversalcb cb)
+pre_order_traversal(bt_node *root, bt_traversalcb cb)
 {
     if (NULL == root) {
         return;
@@ -32,7 +33,7 @@ pre_order_traversal(BTNode *root, BT_traversalcb cb)
 }
 
 void
-post_order_traversal(BTNode *root, BT_traversalcb cb)
+post_order_traversal(bt_node *root, bt_traversalcb cb)
 {
     if (NULL == root) {
         return;
@@ -44,14 +45,14 @@ post_order_traversal(BTNode *root, BT_traversalcb cb)
 }
 
 void
-level_order_traversal(BTNode *root, BT_traversalcb cb)
+level_order_traversal(bt_node *root, bt_traversalcb cb)
 {
 }
 
-BTNode*
-alloc_BT_node(int key)
+bt_node*
+alloc_bt_node(int key)
 {
-    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
+    bt_node *node = (bt_node *)malloc(sizeof(bt_node));
     if (node == NULL) {
         goto done;
     }
@@ -64,3 +65,10 @@ done:
     return node;
 }
 
+void
+free_bt_node(bt_node *node)
+{
+    if (node) {
+        free(node);
+    }
+}

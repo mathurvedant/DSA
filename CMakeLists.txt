@@ -13,10 +13,10 @@ include_directories(include)
 file(GLOB SOURCES src/*.c)
 set(SOURCES ${SOURCES})
 
-add_library(binary_tree SHARED ${SOURCES})
+add_library(dsa SHARED ${SOURCES})
 
 add_executable(dsa_driver bin/driver.c)
-target_link_libraries(dsa_driver binary_tree)
+target_link_libraries(dsa_driver dsa)
 
 
 
