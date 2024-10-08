@@ -20,6 +20,7 @@ print_BT_node(BTNode *node)
 static void
 test_binary_tree(void)
 {
+    printf("\n\tTesting Binary Tree...");
     BTNode *root = alloc_BT_node(50);
     BTNode *left = alloc_BT_node(30);
     BTNode *right = alloc_BT_node(20);
@@ -27,19 +28,27 @@ test_binary_tree(void)
     root->left = left;
     root->right = right;
 
-    printf("\nIn Order BT Traversal: \n");
+    printf("\n\t\tIn Order BT Traversal: ");
     in_order_traversal(root, print_BT_node);
 
-    printf("\nPre Order BT Traversal: \n");
+    printf("\n\t\tPre Order BT Traversal: ");
     pre_order_traversal(root, print_BT_node);
 
-    printf("\nPost Order BT Traversal: \n");
+    printf("\n\t\tPost Order BT Traversal: ");
     post_order_traversal(root, print_BT_node);
+
+    printf("\n\t\tLevel Order BT Traversal: ");
+    level_order_traversal(root, print_BT_node);
+
+    printf("\n");
 }
 
 int main(void)
 {
-    printf("\nWelcome to DSA Driver Program!\n");
+    printf("Welcome to DSA Driver Program!");
+
     test_binary_tree();
+
+    return 0;
 }
 
