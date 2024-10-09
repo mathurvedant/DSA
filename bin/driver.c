@@ -9,6 +9,7 @@
 #include <binary_tree.h>
 #include <queue.h>
 #include <getopt.h>
+#include <assert.h>
 
 static void
 print_bt_node(bt_node *node)
@@ -70,24 +71,57 @@ test_simple_q(void)
 
     int error = 0;
     const uint64_t max_size = 5;
+    uint64_t dequeue_elem = -1;
     simple_q *q = create_simple_q(max_size);
     if (q == NULL) {
         goto done;
     }
 
+    printf("\n\t\tTesting Enqueue...");
     for (int i = 1; i <= max_size; i++) {
         error = simple_q_enqueue(q, i);
         if (error < 0) {
-            printf("\n\t\tError enqueuing...");
+            printf("\n\t\tError enqueuing!");
             goto done;
         }
+    }
+    printf("\n\t\tSimple Queue After Enqueue: ");
+    print_simple_q(q);
+
+    printf("\n\t\tTesting Enqueue on Full...");
+    error = simple_q_enqueue(q, 99);
+    assert(error < 0);
+    if (error < 0) {
+        printf("\n\t\tFailed to Enqueue 99.");
+    }
+
+    printf("\n\t\tTesting Dequeue...");
+    for (int i = 1; i <= max_size; i++) {
+        error = simple_q_dequeue(q, &dequeue_elem);
+        if (error < 0) {
+            printf("\n\t\tError dequeuing!");
+            goto done;
+        }
+        assert(dequeue_elem == i);
+    }
+    printf("\n\t\tSimple Queue After Dequeue: ");
+    print_simple_q(q);
+
+
+    printf("\n\t\tTesting Dequeue on Empty...");
+    error = simple_q_dequeue(q, &dequeue_elem);
+    assert(error < 0);
+    if (error < 0) {
+        printf("\n\t\tFailed to Dequeue.");
     }
 
 
 done:
-    print_simple_q(q);
-
     if (q) {
+        printf("\n\t\tFinal Queue State: ");
+        print_simple_q(q);
+        printf("\n\t\tFinal Queue Info: ");
+        print_simple_q_info(q);
         destroy_simple_q(q);
     }
     printf("\n");

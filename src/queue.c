@@ -28,7 +28,8 @@ create_simple_q(uint64_t size)
 
     newq->front = 0;
     newq->rear = 0;
-    newq->size = size;
+    newq->max_size = size;
+    newq->curr_size = 0;
 
     return newq;
 }
@@ -51,7 +52,8 @@ simple_q_enqueue(simple_q *q, uint64_t key)
     }
 
     q->arr[q->rear] = key;
-    q->rear = ((q->rear + 1) % q->size);
+    q->rear = ((q->rear + 1) % q->max_size);
+    ++q->curr_size;
 
 done:
     return error;
@@ -67,7 +69,8 @@ simple_q_dequeue(simple_q *q, uint64_t *out)
     }
 
     *out = q->arr[q->front];
-    q->front = ((q->front + 1) % q->size);
+    q->front = ((q->front + 1) % q->max_size);
+    --q->curr_size;
 
 done:
     return error;
@@ -76,24 +79,30 @@ done:
 bool
 simple_q_is_full(simple_q *q)
 {
-    if (q->front < q->rear) {
-        return (q->rear - q->front == q->size);
-    } else {
-        return (q->front - q->rear  == q->size);
-    }
+    return (q->curr_size == q->max_size);
 }
 
 bool
 simple_q_is_empty(simple_q *q)
 {
-    return (q->front == q->rear);
+    return (q->curr_size == 0);
 }
 
 void
 print_simple_q(simple_q *q)
 {
-    for (int i = 0; i < q->size; i++) {
-        printf("%llu ", q->arr[i]);
+    if (q->curr_size == 0) {
+        printf("Empty");
+    } else {
+        for (int i = 0; i < q->curr_size; i++) {
+            printf("%llu ", q->arr[i]);
+        }
     }
+}
 
+void
+print_simple_q_info(simple_q *q)
+{
+    printf("Front: %llu, Rear: %llu, Max Size: %llu Curr Size: %llu",
+            q->front, q->rear, q->max_size, q->curr_size);
 }
