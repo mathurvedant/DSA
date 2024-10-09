@@ -5,7 +5,7 @@
  */
 
 #include <binary_tree.h>
-
+#include <queue.h>
 #include <stdlib.h>
 
 void
@@ -47,6 +47,43 @@ post_order_traversal(bt_node *root, bt_traversalcb cb)
 void
 level_order_traversal(bt_node *root, bt_traversalcb cb)
 {
+    int error = 0;
+    simple_q *q = NULL;
+    const uint64_t q_max_size = 100;
+    bt_node *temp = NULL;
+    uint64_t dequeue_elem = -1;
+
+    if (NULL == root) {
+        goto done;
+    }
+
+    q = create_simple_q(q_max_size);
+    if (q == NULL) {
+        goto done;
+    }
+
+    temp = root;
+    while (temp != NULL) {
+        cb(temp);
+        error = simple_q_enqueue(q, (uint64_t)(temp->left));
+        if (error < 0) {
+            goto done;
+        }
+        error = simple_q_enqueue(q, (uint64_t)(temp->right));
+         if (error < 0) {
+            goto done;
+        }
+        error = simple_q_dequeue(q, &dequeue_elem);
+        if (error < 0) {
+            goto done;
+        }
+        temp = (bt_node*)(dequeue_elem);
+    }
+
+done:
+    if (q) {
+        destroy_simple_q(q);
+    }
 }
 
 bt_node*

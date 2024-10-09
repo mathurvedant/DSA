@@ -24,16 +24,37 @@ test_binary_tree(void)
 {
     printf("\n\tTesting Binary Tree...");
 
+    /*
+     * BT below is used to test -
+     *              50
+     *      30              20
+     *  67      54      23      87
+     *
+     */
+
     bt_node *root = alloc_bt_node(50);
     bt_node *left = alloc_bt_node(30);
     bt_node *right = alloc_bt_node(20);
+    bt_node *left_l = alloc_bt_node(67);
+    bt_node *left_r = alloc_bt_node(54);
+    bt_node *right_l = alloc_bt_node(23);
+    bt_node *right_r = alloc_bt_node(87);
 
-    if (root == NULL || left == NULL || right == NULL) {
+
+    if (root == NULL || left == NULL || right == NULL ||
+        left_l == NULL || left_r == NULL || right_l == NULL ||
+        right_r == NULL) {
         goto done;
     }
 
     root->left = left;
     root->right = right;
+
+    left->left = left_l;
+    left->right = left_r;
+
+    right->left = right_l;
+    right->right = right_r;
 
     printf("\n\t\tIn Order BT Traversal: ");
     in_order_traversal(root, print_bt_node);
@@ -48,6 +69,22 @@ test_binary_tree(void)
     level_order_traversal(root, print_bt_node);
 
 done:
+    if (left_l) {
+        free_bt_node(left_l);
+    }
+
+    if (left_r) {
+        free_bt_node(left_r);
+    }
+
+    if (right_l) {
+        free_bt_node(right_l);
+    }
+
+    if (left_r) {
+        free_bt_node(right_r);
+    }
+
     if (left) {
         free_bt_node(left);
     }
