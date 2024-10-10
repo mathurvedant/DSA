@@ -41,7 +41,7 @@ test_binary_tree(bool is_bst)
      *
      *                50
      *        30              67
-     *    20      NULL       54      87
+     *    20      NULL    54      87
      * NULL  23
      */
     const int num_tree_elements = 7;
