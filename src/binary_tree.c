@@ -356,15 +356,23 @@ done:
 }
 
 static bt_node*
+find_inorder_predecessor(bt_node *node)
+{
+    bt_node *pre = node->left;
+    while (pre != NULL && pre->left != NULL) {
+        pre = pre->left;
+    }
+    return pre;
+}
+
+static bt_node*
 find_inorder_successor(bt_node *node)
 {
-    if (node->left == NULL && node->right == NULL) {
-        return node;
-    } else if (node->left != NULL ) {
-        return find_inorder_successor(node->left);
-    } else {
-        return find_inorder_successor(node->right);
+    bt_node *successor = node->right;
+    while (successor != NULL && successor->left != NULL) {
+        successor = successor->left;
     }
+    return successor;
 }
 
 bt_node*
@@ -438,30 +446,43 @@ delete_from_bst(bt_node **root, uint64_t key)
         temp = (bt_node*)(dequeue_elem);
     }
 
+    if (del_node == NULL) {
+        printf("\nDel node not found");
+        goto done;
+    }
+
     /* Del Node is Leaf */
     if (del_node->left == NULL && del_node->right == NULL) {
         purge_node = del_node;
+        goto purge;
     }
 
     /* Del Node has only left subtree */
     if (del_node->left != NULL && del_node->right == NULL){
-        del_node->key = del_node->left->key;
-        purge_node = del_node->left;
+        purge_node = find_inorder_predecessor(del_node);
+        del_node->key = purge_node->key;
+        del_node->left = purge_node->left;
+        del_node->right = purge_node->right;
+        goto purge;
     }
 
     /* Del Node has right subtree */
     if (del_node->right != NULL && del_node->left == NULL){
-        del_node->key = del_node->right->key;
-        purge_node = del_node->right;
+        purge_node = find_inorder_successor(del_node);
+        del_node->key = purge_node->key;
+        del_node->left = purge_node->left;
+        del_node->right = purge_node->right;
+        goto purge;
     }
 
     /* Del Node has both subtrees. */
     if (del_node->right != NULL && del_node->left != NULL) {
-        purge_node = find_inorder_successor(del_node->right);
-        printf("\nSuccessor %llu.", purge_node->key);
+        purge_node = find_inorder_successor(del_node);
         del_node->key = purge_node->key;
+        goto purge;
     }
 
+purge:
     /* Traversal two to delete purge node. */
     temp = *root;
     while (temp != NULL) {
