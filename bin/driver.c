@@ -31,30 +31,14 @@ test_binary_tree(void)
      *  67      54      23      87
      *
      */
+    const int num_tree_elements = 7;
+    uint64_t tree_elements[num_tree_elements] = {50, 30, 20, 67, 54, 23, 87};
 
-    bt_node *root = alloc_bt_node(50);
-    bt_node *left = alloc_bt_node(30);
-    bt_node *right = alloc_bt_node(20);
-    bt_node *left_l = alloc_bt_node(67);
-    bt_node *left_r = alloc_bt_node(54);
-    bt_node *right_l = alloc_bt_node(23);
-    bt_node *right_r = alloc_bt_node(87);
+    bt_node *root = NULL;
 
-
-    if (root == NULL || left == NULL || right == NULL ||
-        left_l == NULL || left_r == NULL || right_l == NULL ||
-        right_r == NULL) {
-        goto done;
+    for (int i = 0 ; i < num_tree_elements; i++ ) {
+        insert_to_bt(&root, tree_elements[i]);
     }
-
-    root->left = left;
-    root->right = right;
-
-    left->left = left_l;
-    left->right = left_r;
-
-    right->left = right_l;
-    right->right = right_r;
 
     printf("\n\t\tIn Order BT Traversal: ");
     in_order_traversal(root, print_bt_node);
@@ -68,33 +52,13 @@ test_binary_tree(void)
     printf("\n\t\tLevel Order BT Traversal: ");
     level_order_traversal(root, print_bt_node);
 
-done:
-    if (left_l) {
-        free_bt_node(left_l);
+    for (int i = 0; i < num_tree_elements; i++) {
+        printf("\n\t\tDeleting tree element %llu", tree_elements[i]);
+        delete_from_bt(&root, tree_elements[i]);
     }
 
-    if (left_r) {
-        free_bt_node(left_r);
-    }
-
-    if (right_l) {
-        free_bt_node(right_l);
-    }
-
-    if (left_r) {
-        free_bt_node(right_r);
-    }
-
-    if (left) {
-        free_bt_node(left);
-    }
-
-    if (right) {
-        free_bt_node(right);
-    }
-
-    if (root) {
-        free_bt_node(root);
+    if (root == NULL) {
+        printf("\n\t\tTree Delete Successful.");
     }
 
     printf("\n");

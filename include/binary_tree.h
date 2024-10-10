@@ -19,14 +19,8 @@ void pre_order_traversal(bt_node *root, bt_traversalcb cb);
 void post_order_traversal(bt_node *root, bt_traversalcb cb);
 void level_order_traversal(bt_node *root, bt_traversalcb cb);
 
-bt_node* alloc_bt_node(int key);
-void free_bt_node(bt_node *node);
-
-
-
-
-
-
+int insert_to_bt(bt_node **root, uint64_t key);
+int delete_from_bt(bt_node **root, uint64_t key);
 
 
 
