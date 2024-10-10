@@ -8,6 +8,7 @@
 #include <queue.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdio.h>
 
 void
 in_order_traversal(bt_node *root, bt_traversalcb cb)
@@ -66,13 +67,17 @@ level_order_traversal(bt_node *root, bt_traversalcb cb)
     temp = root;
     while (temp != NULL) {
         cb(temp);
-        error = simple_q_enqueue(q, (uint64_t)(temp->left));
-        if (error < 0) {
-            goto done;
+        if (temp->left) {
+            error = simple_q_enqueue(q, (uint64_t)(temp->left));
+            if (error < 0) {
+                goto done;
+            }
         }
-        error = simple_q_enqueue(q, (uint64_t)(temp->right));
-         if (error < 0) {
-            goto done;
+        if (temp->right) {
+            error = simple_q_enqueue(q, (uint64_t)(temp->right));
+             if (error < 0) {
+                goto done;
+            }
         }
         error = simple_q_dequeue(q, &dequeue_elem);
         if (error < 0) {
@@ -107,6 +112,7 @@ static void
 free_bt_node(bt_node *node)
 {
     if (node) {
+        node->key = 0;
         free(node);
     }
 }
@@ -182,10 +188,12 @@ insert_to_bt(bt_node **root, uint64_t key)
     bt_node *new_node = alloc_bt_node(key);
     if (new_node == NULL) {
         error = ENOMEM;
+        goto done;
     }
 
     error = insert_bt_node(root, new_node);
 
+done:
     return error;
 }
 
@@ -213,7 +221,9 @@ delete_from_bt(bt_node **root, uint64_t key)
     }
 
     /* Only root node */
-    if ((*root)->key == key) {
+    if (((*root)->key == key) &&
+        ((*root)->left == NULL) &&
+        ((*root)->right == NULL)) {
         free(*root);
         *root = NULL;
         goto done;
@@ -236,20 +246,26 @@ delete_from_bt(bt_node **root, uint64_t key)
             del_node = temp;
         }
 
-        error = simple_q_enqueue(q, (uint64_t)(temp->left));
-        if (error < 0) {
-            error = EFAULT;
-            goto done;
+        if (temp->left) {
+            error = simple_q_enqueue(q, (uint64_t)(temp->left));
+            if (error < 0) {
+                error = EFAULT;
+                goto done;
+            }
         }
-        error = simple_q_enqueue(q, (uint64_t)(temp->right));
-        if (error < 0) {
-            error = EFAULT;
-            goto done;
+
+        if (temp->right) {
+            error = simple_q_enqueue(q, (uint64_t)(temp->right));
+            if (error < 0) {
+                error = EFAULT;
+                goto done;
+            }
         }
+
         error = simple_q_dequeue(q, &dequeue_elem);
         if (error < 0) {
             error = EFAULT;
-            goto done;
+            break;
         }
         temp = (bt_node*)(dequeue_elem);
     }
@@ -305,4 +321,49 @@ done:
         free_bt_node(last_node);
     }
     return error;
+}
+
+bt_node *
+insert_to_bst(bt_node **root, uint64_t key)
+{
+    bt_node *new_node = alloc_bt_node(key);
+    if (new_node == NULL) {
+        goto done;
+    }
+
+    if (root == NULL) {
+        goto done;
+    }
+
+
+    if (*root == NULL) {
+        *root = new_node;
+        goto done;
+    }
+
+    if (key < (*root)->key) {
+        (*root)->left = insert_to_bst(&((*root))->left, key);
+    } else {
+        (*root)->right = insert_to_bst(&((*root)->right), key);
+    }
+
+done:
+    if (root) {
+        return *root;
+    } else {
+        return NULL;
+    }
+}
+
+
+bt_node*
+delete_from_bst(bt_node **root, uint64_t key)
+{
+
+done:
+    if (root) {
+        return *root;
+    } else {
+        return NULL;
+    }
 }

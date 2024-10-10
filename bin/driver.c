@@ -10,6 +10,7 @@
 #include <queue.h>
 #include <getopt.h>
 #include <assert.h>
+#include <stdbool.h>
 
 static void
 print_bt_node(bt_node *node)
@@ -20,9 +21,13 @@ print_bt_node(bt_node *node)
 }
 
 static void
-test_binary_tree(void)
+test_binary_tree(bool is_bst)
 {
-    printf("\n\tTesting Binary Tree...");
+    if (is_bst) {
+        printf("\n\tTesting Binary Search Tree...");
+    } else {
+        printf("\n\tTesting Binary Tree...");
+    }
 
     /*
      * BT below is used to test -
@@ -30,6 +35,14 @@ test_binary_tree(void)
      *      30              20
      *  67      54      23      87
      *
+     * For BST, root remains 50, rest are
+     * inserted per BST properties and tree
+     * will look like below -
+     *
+     *                50
+     *        30              67
+     *    20      NULL       54      87
+     * NULL  23
      */
     const int num_tree_elements = 7;
     uint64_t tree_elements[num_tree_elements] = {50, 30, 20, 67, 54, 23, 87};
@@ -37,28 +50,42 @@ test_binary_tree(void)
     bt_node *root = NULL;
 
     for (int i = 0 ; i < num_tree_elements; i++ ) {
-        insert_to_bt(&root, tree_elements[i]);
+        if (is_bst) {
+            insert_to_bst(&root, tree_elements[i]);
+        } else {
+            insert_to_bt(&root, tree_elements[i]);
+        }
     }
 
-    printf("\n\t\tIn Order BT Traversal: ");
+    printf("\n\t\tIn Order B%sT Traversal: ", (is_bst?"S":""));
     in_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tPre Order BT Traversal: ");
+    printf("\n\t\tPre Order B%sT Traversal: ", (is_bst?"S":""));
     pre_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tPost Order BT Traversal: ");
+    printf("\n\t\tPost Order B%sT Traversal: ", (is_bst?"S":""));
     post_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tLevel Order BT Traversal: ");
+    printf("\n\t\tLevel Order B%sT Traversal: ", (is_bst?"S":""));
     level_order_traversal(root, print_bt_node);
 
     for (int i = 0; i < num_tree_elements; i++) {
         printf("\n\t\tDeleting tree element %llu", tree_elements[i]);
-        delete_from_bt(&root, tree_elements[i]);
+        if (is_bst) {
+            delete_from_bst(&root, tree_elements[i]);
+        } else {
+            delete_from_bt(&root, tree_elements[i]);
+        }
+        if (root) {
+            printf("\n\t\tTree After Delete of %llu - ", tree_elements[i]);
+            level_order_traversal(root, print_bt_node);
+        }
     }
 
     if (root == NULL) {
         printf("\n\t\tTree Delete Successful.");
+    } else {
+        printf("\n\t\tTree Delete Failed.");
     }
 
     printf("\n");
@@ -133,8 +160,9 @@ int main(void)
 {
     printf("Welcome to DSA Driver Program!");
 
-    test_binary_tree();
-
+    test_binary_tree(false);
+    test_binary_tree(true);
+    
     test_simple_q();
 
     return 0;

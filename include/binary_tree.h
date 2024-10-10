@@ -22,7 +22,8 @@ void level_order_traversal(bt_node *root, bt_traversalcb cb);
 int insert_to_bt(bt_node **root, uint64_t key);
 int delete_from_bt(bt_node **root, uint64_t key);
 
-
+bt_node* insert_to_bst(bt_node **root, uint64_t key);
+bt_node* delete_from_bst(bt_node **root, uint64_t key);
 
 
 
