@@ -21,31 +21,13 @@ print_bt_node(bt_node *node)
 }
 
 static void
-test_binary_tree(bool is_bst)
+test_binary_tree(uint64_t *tree_elements, int num_tree_elements, bool is_bst)
 {
     if (is_bst) {
         printf("\n\tTesting Binary Search Tree...");
     } else {
         printf("\n\tTesting Binary Tree...");
     }
-
-    /*
-     * BT below is used to test -
-     *              50
-     *      30              20
-     *  67      54      23      87
-     *
-     * For BST, root remains 50, rest are
-     * inserted per BST properties and tree
-     * will look like below -
-     *
-     *                50
-     *        30              67
-     *    20      NULL    54      87
-     * NULL  23
-     */
-    const int num_tree_elements = 7;
-    uint64_t tree_elements[num_tree_elements] = {50, 30, 20, 67, 54, 23, 87};
 
     bt_node *root = NULL;
 
@@ -156,13 +138,43 @@ done:
     return;
 }
 
+static void
+test_binary_tree_wrapper() {
+    /*
+     * BT below is used to test -
+     *              50
+     *      30              20
+     *  67      54      23      87
+     *
+     * For BST, root remains 50, rest are
+     * inserted per BST properties and tree
+     * will look like below -
+     *
+     *                50
+     *        30              67
+     *    20      NULL    54      87
+     * NULL  23
+     */
+    const int num_tree_elements = 7;
+    uint64_t tree_elements[num_tree_elements] = {50, 30, 20, 67, 54, 23, 87};
+    uint64_t tree_elements_skewed_1[num_tree_elements] = {1, 2, 3, 4, 5, 6, 7};
+    uint64_t tree_elements_skewed_2[num_tree_elements] = {7, 6, 5, 4, 3, 2, 1};
+
+    test_binary_tree(tree_elements, num_tree_elements, false);
+    test_binary_tree(tree_elements, num_tree_elements, true);
+
+    test_binary_tree(tree_elements_skewed_1, num_tree_elements, false);
+    test_binary_tree(tree_elements_skewed_1, num_tree_elements, true);
+
+    test_binary_tree(tree_elements_skewed_2, num_tree_elements, false);
+    test_binary_tree(tree_elements_skewed_2, num_tree_elements, true);
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
 
-    test_binary_tree(false);
-    test_binary_tree(true);
-    
+    test_binary_tree_wrapper();
     test_simple_q();
 
     return 0;

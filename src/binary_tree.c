@@ -378,165 +378,48 @@ find_inorder_successor(bt_node *node)
 bt_node*
 delete_from_bst(bt_node **root, uint64_t key)
 {
-    int error = 0;
-    simple_q *q = NULL;
-    const uint64_t q_max_size = 100;
     bt_node *temp = NULL;
-    bt_node *del_node = NULL;
-    bt_node *purge_node = NULL;
-    uint64_t dequeue_elem = -1;
-    bool free_node = false;
 
     if (root == NULL) {
-        error = EINVAL;
-        goto done;
-    }
-
-    /* Empty Tree. */
-    if (*root == NULL){
-        error = EINVAL;
-        goto done;
-    }
-
-    /* Only root node */
-    if (((*root)->key == key) &&
-        ((*root)->left == NULL) &&
-        ((*root)->right == NULL)) {
-        free(*root);
-        *root = NULL;
-        goto done;
-    }
-
-
-    q = create_simple_q(q_max_size);
-    if (q == NULL) {
-        error = ENOMEM;
-        goto done;
-    }
-
-    /* Traversal one to find node to delete. */
-    temp = *root;
-    while (temp != NULL) {
-
-        if (temp->key == key) {
-            del_node = temp;
-        }
-
-        if (temp->left) {
-            error = simple_q_enqueue(q, (uint64_t)(temp->left));
-            if (error < 0) {
-                error = EFAULT;
-                goto done;
-            }
-        }
-
-        if (temp->right) {
-            error = simple_q_enqueue(q, (uint64_t)(temp->right));
-            if (error < 0) {
-                error = EFAULT;
-                goto done;
-            }
-        }
-
-        error = simple_q_dequeue(q, &dequeue_elem);
-        if (error < 0) {
-            error = EFAULT;
-            break;
-        }
-        temp = (bt_node*)(dequeue_elem);
-    }
-
-    if (del_node == NULL) {
-        printf("\nDel node not found");
-        goto done;
-    }
-
-    /* Del Node is Leaf */
-    if (del_node->left == NULL && del_node->right == NULL) {
-        purge_node = del_node;
-        goto purge;
-    }
-
-    /* Del Node has only left subtree */
-    if (del_node->left != NULL && del_node->right == NULL){
-        purge_node = find_inorder_predecessor(del_node);
-        del_node->key = purge_node->key;
-        del_node->left = purge_node->left;
-        del_node->right = purge_node->right;
-        goto purge;
-    }
-
-    /* Del Node has right subtree */
-    if (del_node->right != NULL && del_node->left == NULL){
-        purge_node = find_inorder_successor(del_node);
-        del_node->key = purge_node->key;
-        del_node->left = purge_node->left;
-        del_node->right = purge_node->right;
-        goto purge;
-    }
-
-    /* Del Node has both subtrees. */
-    if (del_node->right != NULL && del_node->left != NULL) {
-        purge_node = find_inorder_successor(del_node);
-        del_node->key = purge_node->key;
-        goto purge;
-    }
-
-purge:
-    /* Traversal two to delete purge node. */
-    temp = *root;
-    while (temp != NULL) {
-
-        if (temp == purge_node) {
-            free_node = true;
-            goto done;
-        }
-
-        if (temp->left == purge_node) {
-            temp->left = NULL;
-            free_node = true;
-            goto done;
-        } else {
-            error = simple_q_enqueue(q, (uint64_t)(temp->left));
-            if (error < 0) {
-                error = EFAULT;
-                goto done;
-            }
-        }
-
-        if (temp->right == purge_node) {
-            temp->right = NULL;
-            free_node = true;
-            goto done;
-        } else {
-            error = simple_q_enqueue(q, (uint64_t)(temp->right));
-            if (error < 0) {
-                error = EFAULT;
-                goto done;
-            }
-        }
-
-        error = simple_q_dequeue(q, &dequeue_elem);
-        if (error < 0) {
-            error = EFAULT;
-            goto done;
-        }
-        temp = (bt_node*)(dequeue_elem);
-    }
-
-
-done:
-    if (q) {
-        destroy_simple_q(q);
-    }
-
-    if (free_node) {
-        free_bt_node(purge_node);
-    }
-
-    if (root) {
-        return *root;
-    } else {
         return NULL;
     }
+
+    if (*root == NULL) {
+        return NULL;
+    }
+
+    if ((*root)->key == key) {
+
+        /* Leaf Node or only right child*/
+        if ((*root)->left == NULL) {
+            temp = (*root)->right;
+            free_bt_node(*root);
+            *root = NULL;
+            return temp;
+        }
+
+        /* Has only left subtree only */
+        if ((*root)->right == NULL) {
+            temp = (*root)->left;
+            free_bt_node(*root);
+            *root = NULL;
+            return temp;
+        }
+
+        /* Has both sub trees */
+        temp = find_inorder_successor(*root);
+        (*root)->key = temp->key;
+        (*root)->right = delete_from_bst(&((*root)->right), temp->key);
+
+    } else if (key < (*root)->key) {
+
+        (*root)->left = delete_from_bst(&((*root)->left), key);
+
+    } else {
+
+        (*root)->right = delete_from_bst(&((*root)->right), key);
+
+    }
+
+    return (*root);
 }
