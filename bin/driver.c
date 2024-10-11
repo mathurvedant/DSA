@@ -10,6 +10,7 @@
 #include <queue.h>
 #include <getopt.h>
 #include <assert.h>
+#include <stdbool.h>
 
 static void
 print_bt_node(bt_node *node)
@@ -20,81 +21,53 @@ print_bt_node(bt_node *node)
 }
 
 static void
-test_binary_tree(void)
+test_binary_tree(uint64_t *tree_elements, int num_tree_elements, bool is_bst)
 {
-    printf("\n\tTesting Binary Tree...");
-
-    /*
-     * BT below is used to test -
-     *              50
-     *      30              20
-     *  67      54      23      87
-     *
-     */
-
-    bt_node *root = alloc_bt_node(50);
-    bt_node *left = alloc_bt_node(30);
-    bt_node *right = alloc_bt_node(20);
-    bt_node *left_l = alloc_bt_node(67);
-    bt_node *left_r = alloc_bt_node(54);
-    bt_node *right_l = alloc_bt_node(23);
-    bt_node *right_r = alloc_bt_node(87);
-
-
-    if (root == NULL || left == NULL || right == NULL ||
-        left_l == NULL || left_r == NULL || right_l == NULL ||
-        right_r == NULL) {
-        goto done;
+    if (is_bst) {
+        printf("\n\tTesting Binary Search Tree...");
+    } else {
+        printf("\n\tTesting Binary Tree...");
     }
 
-    root->left = left;
-    root->right = right;
+    bt_node *root = NULL;
 
-    left->left = left_l;
-    left->right = left_r;
+    for (int i = 0 ; i < num_tree_elements; i++ ) {
+        if (is_bst) {
+            insert_to_bst(&root, tree_elements[i]);
+        } else {
+            insert_to_bt(&root, tree_elements[i]);
+        }
+    }
 
-    right->left = right_l;
-    right->right = right_r;
-
-    printf("\n\t\tIn Order BT Traversal: ");
+    printf("\n\t\tIn Order B%sT Traversal: ", (is_bst?"S":""));
     in_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tPre Order BT Traversal: ");
+    printf("\n\t\tPre Order B%sT Traversal: ", (is_bst?"S":""));
     pre_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tPost Order BT Traversal: ");
+    printf("\n\t\tPost Order B%sT Traversal: ", (is_bst?"S":""));
     post_order_traversal(root, print_bt_node);
 
-    printf("\n\t\tLevel Order BT Traversal: ");
+    printf("\n\t\tLevel Order B%sT Traversal: ", (is_bst?"S":""));
     level_order_traversal(root, print_bt_node);
 
-done:
-    if (left_l) {
-        free_bt_node(left_l);
+    for (int i = 0; i < num_tree_elements; i++) {
+        printf("\n\t\tDeleting tree element %llu", tree_elements[i]);
+        if (is_bst) {
+            delete_from_bst(&root, tree_elements[i]);
+        } else {
+            delete_from_bt(&root, tree_elements[i]);
+        }
+        if (root) {
+            printf("\n\t\tTree After Delete of %llu - ", tree_elements[i]);
+            level_order_traversal(root, print_bt_node);
+        }
     }
 
-    if (left_r) {
-        free_bt_node(left_r);
-    }
-
-    if (right_l) {
-        free_bt_node(right_l);
-    }
-
-    if (left_r) {
-        free_bt_node(right_r);
-    }
-
-    if (left) {
-        free_bt_node(left);
-    }
-
-    if (right) {
-        free_bt_node(right);
-    }
-
-    if (root) {
-        free_bt_node(root);
+    if (root == NULL) {
+        printf("\n\t\tTree Delete Successful.");
+    } else {
+        printf("\n\t\tTree Delete Failed.");
     }
 
     printf("\n");
@@ -165,12 +138,43 @@ done:
     return;
 }
 
+static void
+test_binary_tree_wrapper() {
+    /*
+     * BT below is used to test -
+     *              50
+     *      30              20
+     *  67      54      23      87
+     *
+     * For BST, root remains 50, rest are
+     * inserted per BST properties and tree
+     * will look like below -
+     *
+     *                50
+     *        30              67
+     *    20      NULL    54      87
+     * NULL  23
+     */
+    const int num_tree_elements = 7;
+    uint64_t tree_elements[num_tree_elements] = {50, 30, 20, 67, 54, 23, 87};
+    uint64_t tree_elements_skewed_1[num_tree_elements] = {1, 2, 3, 4, 5, 6, 7};
+    uint64_t tree_elements_skewed_2[num_tree_elements] = {7, 6, 5, 4, 3, 2, 1};
+
+    test_binary_tree(tree_elements, num_tree_elements, false);
+    test_binary_tree(tree_elements, num_tree_elements, true);
+
+    test_binary_tree(tree_elements_skewed_1, num_tree_elements, false);
+    test_binary_tree(tree_elements_skewed_1, num_tree_elements, true);
+
+    test_binary_tree(tree_elements_skewed_2, num_tree_elements, false);
+    test_binary_tree(tree_elements_skewed_2, num_tree_elements, true);
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
 
-    test_binary_tree();
-
+    test_binary_tree_wrapper();
     test_simple_q();
 
     return 0;
