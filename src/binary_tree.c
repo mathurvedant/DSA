@@ -390,23 +390,31 @@ delete_from_bst(bt_node **root, uint64_t key)
 
     if ((*root)->key == key) {
 
-        /* Leaf Node or only right child*/
+        /* Leaf Node */
+        if ((*root)->left == NULL && (*root)->right == NULL) {
+            free_bt_node(*root);
+            *root = NULL;
+            goto done;
+
+        }
+
+        /* Right Subtree Only */
         if ((*root)->left == NULL) {
-            temp = (*root)->right;
-            free_bt_node(*root);
-            *root = NULL;
-            return temp;
+            temp = *root;
+            *root = (*root)->right;
+            free_bt_node(temp);
+            goto done;
         }
 
-        /* Has only left subtree only */
+        /* Left Subtree Only */
         if ((*root)->right == NULL) {
-            temp = (*root)->left;
-            free_bt_node(*root);
-            *root = NULL;
-            return temp;
+            temp = *root;
+            *root = (*root)->left;
+            free_bt_node(temp);
+            goto done;
         }
 
-        /* Has both sub trees */
+        /* Both Subtrees */
         temp = find_inorder_successor(*root);
         (*root)->key = temp->key;
         (*root)->right = delete_from_bst(&((*root)->right), temp->key);
@@ -421,5 +429,6 @@ delete_from_bst(bt_node **root, uint64_t key)
 
     }
 
+done:
     return (*root);
 }
