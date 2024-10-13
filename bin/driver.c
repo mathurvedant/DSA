@@ -285,6 +285,26 @@ test_heap_common(heap_type_e type)
         print_heap(h);
     }
 
+    for (int i = 0 ; i < heap_size; i++) {
+        heap_elem_t elem = {0};
+        elem.key = i + 10;
+        printf("\n\t\tInserting Element %llu to heap", elem.key);
+        insert_heap(h, &elem);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after insert: ");
+        print_heap(h);
+    }
+
+    for (int i = 0 ; i < heap_size; i++) {
+        heap_elem_t elem = {0};
+        elem.key = i + 10;
+        printf("\n\t\tDeleting element %d time from heap", i + 10);
+        delete_heap(h, &elem);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after delete: ");
+        print_heap(h);
+    }
+
 
 done:
     if (h) {
