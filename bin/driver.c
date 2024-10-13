@@ -9,6 +9,7 @@
 #include <binary_tree.h>
 #include <queue.h>
 #include <Stack.h>
+#include <heap.h>
 #include <getopt.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -217,6 +218,115 @@ done:
     return;
 }
 
+static void
+delete_heap_min_max(heap_t *h)
+{
+    heap_elem_t *del_elem = NULL;
+
+    if (h->h_type == MIN_HEAP) {
+        delete_min(h, &del_elem);
+    }
+
+    if (h->h_type == MAX_HEAP){
+        delete_max(h, &del_elem);
+    }
+}
+
+static void
+print_heap_min_max(heap_t *h)
+{
+    heap_elem_t *min_max = NULL;
+
+    if (h->h_type == MIN_HEAP){
+        min_max= get_min(h);
+        if (min_max) {
+            printf("\n\t\t\tHeap Min: %llu", min_max->key);
+        } else {
+            printf("\n\t\t\tHeap Empty");
+        }
+    }
+
+    if (h->h_type == MAX_HEAP){
+        min_max = get_max(h);
+        if (min_max) {
+            printf("\n\t\t\tHeap Max: %llu", min_max->key);
+        } else {
+            printf("\n\t\t\tHeap Empty");
+        }
+    }
+}
+
+static void
+test_heap_common(heap_type_e type)
+{
+    const uint64_t heap_size = 15;
+
+    heap_t *h = create_heap(type, heap_size);
+    if (h == NULL) {
+        printf("\n\t\tFailed to allocate heap");
+        goto done;
+    }
+
+    for (int i = 0 ; i < heap_size; i++) {
+        heap_elem_t elem = {0};
+        elem.key = i + 10;
+        printf("\n\t\tInserting Element %llu to heap", elem.key);
+        insert_heap(h, &elem);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after insert: ");
+        print_heap(h);
+    }
+
+    for (int i = 0 ; i < heap_size; i++) {
+        printf("\n\t\tDeleting root %d time from heap", i + 1);
+        delete_heap_min_max(h);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after delete: ");
+        print_heap(h);
+    }
+
+    for (int i = 0 ; i < heap_size; i++) {
+        heap_elem_t elem = {0};
+        elem.key = i + 10;
+        printf("\n\t\tInserting Element %llu to heap", elem.key);
+        insert_heap(h, &elem);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after insert: ");
+        print_heap(h);
+    }
+
+    for (int i = 0 ; i < heap_size; i++) {
+        heap_elem_t elem = {0};
+        elem.key = i + 10;
+        printf("\n\t\tDeleting element %d time from heap", i + 10);
+        delete_heap(h, &elem);
+        print_heap_min_max(h);
+        printf("\n\t\t\tHeap after delete: ");
+        print_heap(h);
+    }
+
+
+done:
+    if (h) {
+        destroy_heap(h);
+    }
+    printf("\n");
+}
+
+static void
+test_min_heap()
+{
+    printf("\n\tTesting MIN Heap...");
+    test_heap_common(MIN_HEAP);
+}
+
+static void
+test_max_heap()
+{
+    printf("\n\tTesting MAX Heap...");
+    test_heap_common(MAX_HEAP);
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
@@ -224,6 +334,8 @@ int main(void)
     test_binary_tree_wrapper();
     test_simple_q();
     test_stack();
+    test_min_heap();
+    test_max_heap();
 
     return 0;
 }
