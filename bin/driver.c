@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <binary_tree.h>
 #include <queue.h>
+#include <Stack.h>
 #include <getopt.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -170,12 +171,59 @@ test_binary_tree_wrapper() {
     test_binary_tree(tree_elements_skewed_2, num_tree_elements, true);
 }
 
+static void
+test_stack()
+{
+    printf("\n\tTesting Stack...");
+
+    const uint64_t stack_capacity = 15;
+    const uint64_t run_capacity = 10;
+    uint64_t elem = -1;
+    dsa_stack_t *s = create_dsa_stack(stack_capacity);
+    if (s == NULL) {
+        printf("\n\t\tFailed to allocate stack");
+        goto done;
+    }
+
+    for (int i = 0; i < run_capacity; i++) {
+        printf("\n\t\tPushing %d ", i);
+        dsa_stack_push(s, i);
+    }
+
+    if (dsa_stack_is_full(s)) {
+        printf("\n\t\tStack is full.");
+    } else {
+        printf("\n\t\tStack is not full.");
+    }
+
+    dsa_stack_top(s, &elem);
+    printf("\n\t\tTop element = %llu", elem);
+
+    for (int i = 0; i < run_capacity; i++) {
+        uint64_t pop_elem = -1;
+        dsa_stack_pop(s, &pop_elem);
+        printf("\n\t\tPopping %llu ", pop_elem);
+    }
+
+    if (dsa_stack_is_empty(s)) {
+        printf("\n\t\tStack is empty.");
+    }
+
+done:
+    if (s) {
+        destroy_dsa_stack(s);
+    }
+    printf("\n");
+    return;
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
 
     test_binary_tree_wrapper();
     test_simple_q();
+    test_stack();
 
     return 0;
 }
