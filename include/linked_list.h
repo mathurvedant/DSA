@@ -4,10 +4,13 @@
  * Linked List Data Structure Operations
  */
 
+#pragma once
+
 #include <stdint.h>
 
 typedef struct ll_node_key_ {
     uint64_t key;
+    uint64_t val; // For hash map use only.
 } ll_node_key_t;
 
 typedef struct slist_node_ {
@@ -24,8 +27,8 @@ typedef struct dlist_node_ {
 typedef void (*sll_traversalcb)(slist_node_t *node);
 typedef void (*dll_traversalcb)(dlist_node_t *node);
 
-int insert_slist_head(slist_node_t **head, uint64_t key);
-int insert_slist_tail(slist_node_t **head, uint64_t key);
+int insert_slist_head(slist_node_t **head, uint64_t key, uint64_t val);
+int insert_slist_tail(slist_node_t **head, uint64_t key, uint64_t val);
 int slist_remove(slist_node_t **head, uint64_t key);
 int slist_foreach(slist_node_t *head, sll_traversalcb cb);
 
