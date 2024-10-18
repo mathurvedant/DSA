@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <linked_list.h>
 #include <binary_tree.h>
 #include <queue.h>
 #include <Stack.h>
@@ -13,6 +14,7 @@
 #include <getopt.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <errno.h>
 
 static void
 print_bt_node(bt_node *node)
@@ -327,6 +329,144 @@ test_max_heap()
     test_heap_common(MAX_HEAP);
 }
 
+static void
+print_dlist_node(dlist_node_t *node)
+{
+    if (node != NULL) {
+        printf("%llu ", node->key_node.key);
+    }
+}
+
+static void
+print_slist_node(slist_node_t *node)
+{
+    if (node != NULL) {
+        printf("%llu ", node->key_node.key);
+    }
+}
+
+
+static void
+test_singly_linked_list()
+{
+    int error = 0;
+
+    printf("\n\tTesting Singly Linked List...");
+
+    slist_node_t *head = NULL;
+
+    printf("\n\t\tInserting into SLL at head...");
+    for (int i = 10; i <= 20; i++) {
+        printf("\n\t\tInserting %d to SLL", i);
+        insert_slist_head(&head, i);
+    }
+
+    printf("\n\t\tSLL after insert at head...");
+    slist_foreach(head, print_slist_node);
+
+
+    printf("\n\t\tInserting into SLL at Tail...");
+    for (int i = 9; i >= 0; i--) {
+        printf("\n\t\tInserting %d to SLL", i);
+        insert_slist_tail(&head, i);
+    }
+
+    printf("\n\t\tSLL after insert at tail...");
+    slist_foreach(head, print_slist_node);
+
+    printf("\n\t\tDeleting random node 99...");
+    error = slist_remove(&head, 99);
+    if (error != 0) {
+        if (error == ENOENT) {
+            printf("\n\t\tDelete Failed as Expected.");
+        } else {
+            printf("\n\t\tDelete Failed Unexpectedly %d", error);
+        }
+    } else {
+        printf("\n\t\tDelete Passed Unexpectedly");
+    }
+
+    for (int i = 0; i <= 20; i++) {
+        printf("\n\t\tDeleting %d from SLL", i);
+        error = slist_remove(&head, i);
+        if (error != 0) {
+            printf("\n\t\tDelete Failed Unexpectedly %d."
+                    " Element %d", error, i);
+        }
+    }
+
+    printf("\n\t\tSLL after delete...");
+    if ((error = slist_foreach(head, print_slist_node)) == ENOENT) {
+        printf("Empty List");
+    }
+
+    printf("\n");
+}
+
+static void
+test_doubly_linked_list()
+{
+    int error = 0;
+
+    printf("\n\tTesting Doubly Linked List...");
+
+    dlist_node_t *head = NULL;
+
+    printf("\n\t\tInserting into DLL at head...");
+    for (int i = 10; i <= 20; i++) {
+        printf("\n\t\tInserting %d to DLL", i);
+        insert_dlist_head(&head, i);
+    }
+
+    printf("\n\t\tDLL after insert at head...");
+    dlist_foreach(head, print_dlist_node);
+
+
+    printf("\n\t\tInserting into DLL at Tail...");
+    for (int i = 9; i >= 0; i--) {
+        printf("\n\t\tInserting %d to DLL", i);
+        insert_dlist_tail(&head, i);
+    }
+
+    printf("\n\t\tDLL after insert at tail...");
+    dlist_foreach(head, print_dlist_node);
+
+    printf("\n\t\tDeleting random node 99...");
+    error = dlist_remove(&head, 99);
+    if (error != 0) {
+        if (error == ENOENT) {
+            printf("\n\t\tDelete Failed as Expected.");
+        } else {
+            printf("\n\t\tDelete Failed Unexpectedly %d", error);
+        }
+    } else {
+        printf("\n\t\tDelete Passed Unexpectedly");
+    }
+
+    for (int i = 0; i <= 20; i++) {
+        printf("\n\t\tDeleting %d from DLL", i);
+        error = dlist_remove(&head, i);
+        if (error != 0) {
+            printf("\n\t\tDelete Failed Unexpectedly %d."
+                    " Element %d", error, i);
+        }
+    }
+
+    printf("\n\t\tDLL after delete...");
+    if ((error = dlist_foreach(head, print_dlist_node)) == ENOENT) {
+        printf("Empty List");
+    }
+
+    printf("\n");
+}
+
+static void
+test_linked_list()
+{
+    test_singly_linked_list();
+    test_doubly_linked_list();
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
@@ -336,6 +476,7 @@ int main(void)
     test_stack();
     test_min_heap();
     test_max_heap();
+    test_linked_list();
 
     return 0;
 }
