@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 static int
-insert_slist_common(slist_node_t **head, uint64_t key, bool tail)
+insert_slist_common(slist_node_t **head, uint64_t key, uint64_t val, bool tail)
 {
     int error = 0;
     slist_node_t *temp = NULL;
@@ -29,6 +29,7 @@ insert_slist_common(slist_node_t **head, uint64_t key, bool tail)
     }
 
     new_node->key_node.key = key;
+    new_node->key_node.val = val;
     new_node->next = NULL;
 
     /* Empty List. */
@@ -55,15 +56,15 @@ done:
 }
 
 int
-insert_slist_head(slist_node_t **head, uint64_t key)
+insert_slist_head(slist_node_t **head, uint64_t key, uint64_t val)
 {
-    return insert_slist_common(head, key, false);
+    return insert_slist_common(head, key, val, false);
 }
 
 int
-insert_slist_tail(slist_node_t **head, uint64_t key)
+insert_slist_tail(slist_node_t **head, uint64_t key, uint64_t val)
 {
-    return insert_slist_common(head, key, true);
+    return insert_slist_common(head, key, val, true);
 }
 
 int

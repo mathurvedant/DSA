@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <hashmap.h>
 #include <linked_list.h>
 #include <binary_tree.h>
 #include <queue.h>
@@ -358,7 +359,7 @@ test_singly_linked_list()
     printf("\n\t\tInserting into SLL at head...");
     for (int i = 10; i <= 20; i++) {
         printf("\n\t\tInserting %d to SLL", i);
-        insert_slist_head(&head, i);
+        insert_slist_head(&head, i, 0);
     }
 
     printf("\n\t\tSLL after insert at head...");
@@ -368,7 +369,7 @@ test_singly_linked_list()
     printf("\n\t\tInserting into SLL at Tail...");
     for (int i = 9; i >= 0; i--) {
         printf("\n\t\tInserting %d to SLL", i);
-        insert_slist_tail(&head, i);
+        insert_slist_tail(&head, i, 0);
     }
 
     printf("\n\t\tSLL after insert at tail...");
@@ -467,6 +468,65 @@ test_linked_list()
     test_doubly_linked_list();
 }
 
+static void
+test_hash_map()
+{
+    int error = 0;
+    hash_map_t *map = NULL;
+    const int NUM_BUCKETS = 25;
+
+    printf("\n\tTesting Hash Map...");
+
+    error = create_dsa_hash_map(&map, NUM_BUCKETS);
+    if (error || map == NULL) {
+        printf("Failed to create hash map. Error: %d", error);
+        goto done;
+    }
+
+    printf("\n\t\tInserting into hash map...");
+    for (int i = 0, j = 200; i < NUM_BUCKETS; i++, j++) {
+        printf("\n\t\tInserting key %d val %d", i, j);
+        error = dsa_hash_map_insert(map, i, j);
+        if (error != 0) {
+            printf("\n\t\tHash Map Insert failed K:%d, V:%d Error:%d",
+                    i, j, error);
+        }
+    }
+
+    printf("\n\t\tLooking up in hash map...");
+    for (int i = 0, j = 200; i < NUM_BUCKETS; i++, j++) {
+        uint64_t val = 0;
+        printf("\n\t\tLooking up key %d", i);
+        error = dsa_hash_map_lookup(map, i, &val);
+        if (error != 0) {
+            printf("\n\t\tLookup Failed. K:%d", i);
+        } else {
+            if (val == j) {
+                printf("\n\t\tLookup Succeeded. K:%d, V:%llu", i, val);
+            } else {
+                printf("\n\t\tLookup Found incorrect value. K:%d, V:%llu Expected V:%d",
+                        i, val, j);
+            }
+        }
+    }
+
+    printf("\n\t\tDeleting from hash map...");
+    for (int i = 0 ; i < NUM_BUCKETS; i++) {
+        printf("\n\t\tDeleting key %d", i);
+        error = dsa_hash_map_delete(map, i);
+        if (error != 0) {
+            printf("\n\t\tDelete Failed. K:%d", i);
+        }
+    }
+
+
+done:
+    if (map != NULL) {
+        destroy_dsa_hash_map(map);
+    }
+    printf("\n");
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
@@ -477,6 +537,7 @@ int main(void)
     test_min_heap();
     test_max_heap();
     test_linked_list();
+    test_hash_map();
 
     return 0;
 }
