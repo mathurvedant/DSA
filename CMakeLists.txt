@@ -15,7 +15,7 @@ set(SOURCES ${SOURCES})
 
 add_library(dsa SHARED ${SOURCES})
 
-add_executable(dsa_driver bin/driver.c)
+add_executable(dsa_driver bin/dsa_driver.c)
 target_link_libraries(dsa_driver dsa)
 
 
