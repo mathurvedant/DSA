@@ -493,6 +493,17 @@ test_hash_map()
         }
     }
 
+    printf("\n\t\tInserting Duplicate Hash Map...");
+    for (int i = 0, j = 300; i < NUM_BUCKETS; i++, j++) {
+        printf("\n\t\tInserting Duplicate key %d val %d", i, j);
+        error = dsa_hash_map_insert(map, i, j);
+        if (error == EEXIST) {
+            printf("\n\t\tDuplicate key %d rejected as expected.", i);
+        } else {
+            printf("\n\t\tDuplicate key %d accepted! Unexpected!.", i);
+        }
+    }
+
     printf("\n\t\tLooking up in hash map...");
     for (int i = 0, j = 200; i < NUM_BUCKETS; i++, j++) {
         uint64_t val = 0;

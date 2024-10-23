@@ -15,8 +15,11 @@ set(SOURCES ${SOURCES})
 
 add_library(dsa SHARED ${SOURCES})
 
-add_executable(dsa_driver bin/driver.c)
+add_executable(dsa_driver bin/dsa_driver.c)
 target_link_libraries(dsa_driver dsa)
+
+add_executable(algos_driver bin/algos_driver.c)
+target_link_libraries(algos_driver dsa)
 
 
 

@@ -74,10 +74,17 @@ int
 dsa_hash_map_insert(hash_map_t *map, uint64_t key, uint64_t val)
 {
     int error = 0;
+    uint64_t temp_val = 0;
     uint64_t index = mod_hash(key, map->num_buckets);
     hash_map_bucket_t *curr_bucket = &map->buckets[index];
     if (curr_bucket == NULL) {
         error = EFAULT;
+        goto done;
+    }
+
+    error = dsa_hash_map_lookup(map, key, &temp_val);
+    if (error != ENOENT) {
+        error = EEXIST;
         goto done;
     }
 
