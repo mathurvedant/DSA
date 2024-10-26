@@ -92,6 +92,57 @@ done:
     }
 }
 
+void
+level_order_traversal_with_height(bt_node *root, bt_traversalcb cb)
+{
+    int error = 0;
+    simple_q *q = NULL;
+    const uint64_t q_max_size = 100;
+    bt_node *temp = NULL;
+    uint64_t dequeue_elem = -1;
+    int level_length = 0;
+
+    if (NULL == root) {
+        goto done;
+    }
+
+    q = create_simple_q(q_max_size);
+    if (q == NULL) {
+        goto done;
+    }
+
+    simple_q_enqueue(q, (uint64_t)(root));
+
+    while (!simple_q_is_empty(q)) {
+        level_length = q->curr_size;
+
+        while (level_length > 0) {
+            if (simple_q_dequeue(q, &dequeue_elem) == -1) {
+                goto done;
+            }
+            --level_length;
+
+            temp = (bt_node*)(dequeue_elem);
+			cb(temp);
+
+            if (temp->left) {
+                simple_q_enqueue(q, (uint64_t)(temp->left));
+            }
+            if (temp->right) {
+                simple_q_enqueue(q, (uint64_t)(temp->right));
+            }
+        }
+        printf(": ");
+    }
+
+done:
+    if (q) {
+        destroy_simple_q(q);
+    }
+}
+
+
+
 static bt_node*
 alloc_bt_node(uint64_t key)
 {
