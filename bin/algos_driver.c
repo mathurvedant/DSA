@@ -54,11 +54,148 @@ test_search(void)
     printf("\n");
 }
 
+static void
+test_merge_sort(void)
+{
+    int ARR_SIZE = 10;
+    int64_t arr[ARR_SIZE];
+
+    for (int i = 0; i < ARR_SIZE; i++) {
+        arr[i] = rand() % 101;
+    }
+
+    printf("\n\t\tUnsorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    bubble_sort(arr, ARR_SIZE);
+    printf("\n\t\tMerge Sorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    printf("\n");
+}
+
+static void
+test_quick_sort(void)
+{
+    int ARR_SIZE = 10;
+    int64_t arr[ARR_SIZE];
+
+    for (int i = 0; i < ARR_SIZE; i++) {
+        arr[i] = rand() % 101;
+    }
+
+    printf("\n\t\tUnsorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    quick_sort(arr, ARR_SIZE);
+    printf("\n\t\tQuick Sorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    printf("\n");
+}
+
+
+static void
+test_insertion_sort(void)
+{
+    int ARR_SIZE = 10;
+    int64_t arr[ARR_SIZE];
+
+    for (int i = 0; i < ARR_SIZE; i++) {
+        arr[i] = rand() % 101;
+    }
+
+    printf("\n\t\tUnsorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    insertion_sort(arr, ARR_SIZE);
+    printf("\n\t\tInsertion Sorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    printf("\n");
+}
+
+
+static void
+test_selection_sort(void)
+{
+    int ARR_SIZE = 10;
+    int64_t arr[ARR_SIZE];
+
+    for (int i = 0; i < ARR_SIZE; i++) {
+        arr[i] = rand() % 101;
+    }
+
+    printf("\n\t\tUnsorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    selection_sort(arr, ARR_SIZE);
+    printf("\n\t\tSelection Sorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    printf("\n");
+}
+
+static void
+test_bubble_sort(void)
+{
+    int ARR_SIZE = 10;
+    int64_t arr[ARR_SIZE];
+
+    for (int i = 0; i < ARR_SIZE; i++) {
+        arr[i] = rand() % 101;
+    }
+
+    printf("\n\t\tUnsorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    bubble_sort(arr, ARR_SIZE);
+    printf("\n\t\tBubble Sorted Array: ");
+    for (int i = 0; i < ARR_SIZE; i++) {
+        printf("%lld ", arr[i]);
+    }
+
+    printf("\n");
+}
+
+static void
+test_sorting(void)
+{
+    printf("\n\tTesting Sorting Algorithms...");
+
+    test_bubble_sort();
+    test_selection_sort();
+    test_insertion_sort();
+    test_quick_sort();
+    test_merge_sort();
+
+    printf("\n");
+}
+
 int main(void)
 {
     printf("\nWelcome to Algorithms Driver Program!");
 
     test_search();
+    test_sorting();
 
     return 0;
 }

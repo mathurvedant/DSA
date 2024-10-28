@@ -56,6 +56,9 @@ test_binary_tree(uint64_t *tree_elements, int num_tree_elements, bool is_bst)
     printf("\n\t\tLevel Order B%sT Traversal: ", (is_bst?"S":""));
     level_order_traversal(root, print_bt_node);
 
+    printf("\n\t\tLevel Order B%sT Traversal With Height: ", (is_bst?"S":""));
+    level_order_traversal_with_height(root, print_bt_node);
+
     for (int i = 0; i < num_tree_elements; i++) {
         printf("\n\t\tDeleting tree element %llu", tree_elements[i]);
         if (is_bst) {
