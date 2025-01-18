@@ -12,6 +12,7 @@
 #include <queue.h>
 #include <Stack.h>
 #include <heap.h>
+#include <graph.h>
 #include <getopt.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -541,6 +542,60 @@ done:
     printf("\n");
 }
 
+static void
+test_graph()
+{
+    int error = 0;
+    graph_t *g = NULL;
+    const uint64_t NUM_VERTICES = 10;
+    bool undirected = true;
+
+    printf("\n\tTesting Graphs...");
+
+    printf("\n\t\tCreating Graph...");
+    g = create_graph(NUM_VERTICES);
+    if (g == NULL) {
+        printf("\n\t\tFailed to create graph!");
+        goto done;
+    }
+
+    printf("\n\t\tAdding Vertices...");
+    for (int i = 0; i < NUM_VERTICES; i++) {
+        error = add_vertex(g, i+1);
+        if (error) {
+            printf("\n\t\t\tFailed to add vertex %d", i+1);
+            goto done;
+        }
+        printf("\n\t\t\tAdded vertex %d", i+1);
+    }
+
+    printf("\n\t\tAdding Edges...");
+
+    add_edge(g, 1, 6, 0, undirected);
+    add_edge(g, 1, 5, 0, undirected);
+    add_edge(g, 1, 4, 0, undirected);
+    add_edge(g, 2, 6, 0, undirected);
+    add_edge(g, 2, 7, 0, undirected);
+    add_edge(g, 2, 3, 0, undirected);
+    add_edge(g, 3, 8, 0, undirected);
+    add_edge(g, 3, 4, 0, undirected);
+    add_edge(g, 4, 5, 0, undirected);
+    add_edge(g, 4, 10, 0, undirected);
+    add_edge(g, 6, 7, 0, undirected);
+    add_edge(g, 6, 9, 0, undirected);
+    add_edge(g, 7, 8, 0, undirected);
+    add_edge(g, 9, 10, 0, undirected);
+
+    print_graph(g);
+
+done:
+    if (g != NULL) {
+        delete_graph(g);
+    }
+    printf("\n");
+
+}
+
 int main(void)
 {
     printf("Welcome to DSA Driver Program!");
@@ -552,6 +607,7 @@ int main(void)
     test_max_heap();
     test_linked_list();
     test_hash_map();
+    test_graph();
 
     return 0;
 }
