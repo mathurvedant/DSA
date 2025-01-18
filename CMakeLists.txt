@@ -10,7 +10,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 
-file(GLOB SOURCES src/*.c)
+file(GLOB_RECURSE SOURCES src/*.c src/*.cpp)
 set(SOURCES ${SOURCES})
 
 add_library(dsa SHARED ${SOURCES})
@@ -21,6 +21,8 @@ target_link_libraries(dsa_driver dsa)
 add_executable(algos_driver bin/algos_driver.c)
 target_link_libraries(algos_driver dsa)
 
+add_executable(dsa_cpp_driver bin/dsa_cpp_driver.cpp)
+target_link_libraries(dsa_cpp_driver dsa)
 
 
 
