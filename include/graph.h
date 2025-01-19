@@ -15,10 +15,12 @@ struct graph_edge_s;
  *
  * This object contains -
  *      key - Key of the vertex
+ *      idx - Index of this vertex in Graph array of vertices.
  *      edges - List of all edges from this vertex.
  */
 typedef struct graph_vertex_s {
     uint64_t key;
+    uint16_t idx;
     struct graph_edge_s *edges;
 } graph_vertex_t;
 
@@ -61,3 +63,7 @@ int add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
 void delete_graph(graph_t *g);
 
 void print_graph(graph_t *g);
+
+typedef void (*graphtraversalcb)(graph_vertex_t *v);
+int graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
+int graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
