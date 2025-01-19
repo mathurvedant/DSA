@@ -543,6 +543,14 @@ done:
 }
 
 static void
+print_graph_vertex(graph_vertex_t *v)
+{
+    if (v) {
+        printf("%llu ", v->key);
+    }
+}
+
+static void
 test_graph()
 {
     int error = 0;
@@ -571,6 +579,19 @@ test_graph()
 
     printf("\n\t\tAdding Edges...");
 
+    /*
+     *
+     *      Graph View Representation
+     *
+     *      9 ------------- 6 -------------------- 7
+     *      |               |\                   / |
+     *      |               |  \    /---------- /  |
+     *      |          5----1    \ /               |
+     *      |          |    |     2                |
+     *      |          |----|      \               |
+     *      |          |            \              |
+     *      10 ------- 4 ----------- 3 ----------- 8
+     */
     add_edge(g, 1, 6, 0, undirected);
     add_edge(g, 1, 5, 0, undirected);
     add_edge(g, 1, 4, 0, undirected);
@@ -587,6 +608,23 @@ test_graph()
     add_edge(g, 9, 10, 0, undirected);
 
     print_graph(g);
+    printf("\n");
+
+    printf("\n\t\tDepth First Traversal Start Vertex 1 - ");
+    graph_dfs(g, 1, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tBreadth First Traversal Start Vertex 1 - ");
+    graph_bfs(g, 1, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tDepth First Traversal Start Vertex 9 - ");
+    graph_dfs(g, 9, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tBreadth First Traversal Start Vertex 9 - ");
+    graph_bfs(g, 9, print_graph_vertex);
+    printf("\n");
 
 done:
     if (g != NULL) {
@@ -596,19 +634,97 @@ done:
 
 }
 
-int main(void)
+static void
+print_usage()
 {
+    printf("\ndsa_driver -[LMQSBHG]");
+    printf("\n\t\t L - Test Linked Lists");
+    printf("\n\t\t M - Test Hash Map");
+    printf("\n\t\t Q - Test Queue");
+    printf("\n\t\t S - Test Stack");
+    printf("\n\t\t B - Test Binary Trees and BST");
+    printf("\n\t\t H - Test Heap");
+    printf("\n\t\t G - Test Graphs");
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+    int opt = 0;
+
+    bool test_ll_f = false;
+    bool test_map_f = false;
+    bool test_queue_f = false;
+    bool test_stack_f = false;
+    bool test_binary_trees_f = false;
+    bool test_heap_f = false;
+    bool test_graph_f = false;
+
     printf("Welcome to DSA Driver Program!");
 
-    test_binary_tree_wrapper();
-    test_simple_q();
-    test_stack();
-    test_min_heap();
-    test_max_heap();
-    test_linked_list();
-    test_hash_map();
-    test_graph();
+    while ((opt = getopt(argc, argv, "hLMQSBHG")) != -1) {
+        switch (opt) {
+            case 'L':
+                test_ll_f = true;
+                break;
+            case 'M':
+                test_map_f = true;
+                break;
+            case 'Q':
+                test_queue_f = true;
+                break;
+            case 'S':
+                test_stack_f = true;
+                break;
+            case 'B':
+                test_binary_trees_f = true;
+                break;
+            case 'H':
+                test_heap_f = true;
+                break;
+            case 'G':
+                test_graph_f = true;
+                break;
+            case 'h':
+                print_usage();
+                break;
+            default:
+                printf("\nIncorrect option.");
+                print_usage();
+                goto done;
+        }
+    }
 
+    if (test_ll_f) {
+        test_linked_list();
+    }
+
+    if (test_map_f) {
+        test_hash_map();
+    }
+
+    if (test_queue_f) {
+        test_simple_q();
+    }
+
+    if (test_stack_f) {
+        test_stack();
+    }
+
+    if (test_binary_trees_f) {
+        test_binary_tree_wrapper();
+    }
+
+    if (test_heap_f) {
+        test_min_heap();
+        test_max_heap();
+    }
+
+    if (test_graph_f) {
+        test_graph();
+    }
+
+done:
     return 0;
 }
 

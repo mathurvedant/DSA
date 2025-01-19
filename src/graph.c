@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <strings.h>
 #include <stdio.h>
+#include <queue.h>
+#include <Stack.h>
 
 graph_t *
 create_graph(uint64_t num_vertices)
@@ -63,6 +65,7 @@ add_vertex(graph_t *g, uint64_t key)
     /* Populate new vertex. */
     graph_vertex_t *vertex = &g->vertices[index];
     vertex->key = key;
+    vertex->idx = index;
     vertex->edges = NULL;
 
     /* Increase index. */
@@ -224,5 +227,168 @@ print_graph(graph_t *g)
         }
         printf("##");
     }
-    printf("\n\t\tGRAPH INFO DONE");
 }
+
+int
+graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
+{
+    int error = 0;
+    dsa_stack_t *st = NULL;
+    bool *visited = NULL;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, start_vertex);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    st = create_dsa_stack(num_vertices);
+    if (st == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+    for (int i = 0; i < num_vertices; i++) {
+        visited[i] = false;
+    }
+
+    // DFS
+    {
+        dsa_stack_push(st, (uint64_t)(start));
+
+        while (!dsa_stack_is_empty(st)) {
+
+            uint64_t temp = 0;
+            graph_vertex_t *curr_vertex = NULL;
+            graph_edge_t *curr_edge = NULL;
+
+            // Extract Vertex from Stack
+            dsa_stack_pop(st, &temp);
+            curr_vertex = (graph_vertex_t *)(temp);
+            curr_edge = curr_vertex->edges;
+
+            // Process Vertex if not visited already.
+            // Mark as visited
+            if (!visited[curr_vertex->idx]) {
+                visited[curr_vertex->idx] = true;
+                cb(curr_vertex);
+            }
+
+            // Add adjacent vertices to stack if not
+            // visited.
+            while (curr_edge != NULL) {
+                graph_vertex_t *v = curr_edge->dst;
+                if (!visited[v->idx]) {
+                    dsa_stack_push(st, (uint64_t)(curr_edge->dst));
+                }
+                curr_edge = curr_edge->edge_next;
+            }
+        }
+    }
+
+done:
+    if (visited) {
+        free(visited);
+    }
+
+    if (st) {
+        destroy_dsa_stack(st);
+    }
+    return error;
+
+}
+
+int
+graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
+{
+    int error = 0;
+    simple_q *q = NULL;
+    bool *visited = NULL;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, start_vertex);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    q = create_simple_q(num_vertices);
+    if (q == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+    for (int i = 0; i < num_vertices; i++) {
+        visited[i] = false;
+    }
+
+    // BFS
+    {
+        simple_q_enqueue(q, (uint64_t)(start));
+
+        while (!simple_q_is_empty(q)) {
+
+            uint64_t temp = 0;
+            graph_vertex_t *curr_vertex = NULL;
+            graph_edge_t *curr_edge = NULL;
+
+            // Extract Vertex from Queue
+            simple_q_dequeue(q, &temp);
+            curr_vertex = (graph_vertex_t *)(temp);
+            curr_edge = curr_vertex->edges;
+
+            // Process Vertex if not visited already.
+            // Mark as visited
+            if (!visited[curr_vertex->idx]) {
+                visited[curr_vertex->idx] = true;
+                cb(curr_vertex);
+            }
+
+            // Add adjacent vertices to stack if not
+            // visited.
+            while (curr_edge != NULL) {
+                graph_vertex_t *v = curr_edge->dst;
+                if (!visited[v->idx]) {
+                    simple_q_enqueue(q, (uint64_t)(curr_edge->dst));
+                }
+                curr_edge = curr_edge->edge_next;
+            }
+        }
+    }
+
+done:
+    if (visited) {
+        free(visited);
+    }
+
+    if (q) {
+        destroy_simple_q(q);
+    }
+    return error;
+}
+
