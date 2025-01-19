@@ -551,14 +551,100 @@ print_graph_vertex(graph_vertex_t *v)
 }
 
 static void
-test_graph()
+test_graph_directed()
+{
+    int error = 0;
+    graph_t *g = NULL;
+    const uint64_t NUM_VERTICES = 10;
+    bool undirected = false;
+
+    printf("\n\tTesting Directed Graphs...");
+
+    printf("\n\t\tCreating Graph...");
+    g = create_graph(NUM_VERTICES);
+    if (g == NULL) {
+        printf("\n\t\tFailed to create graph!");
+        goto done;
+    }
+
+    printf("\n\t\tAdding Vertices...");
+    for (int i = 0; i < NUM_VERTICES; i++) {
+        error = add_vertex(g, i+1);
+        if (error) {
+            printf("\n\t\t\tFailed to add vertex %d", i+1);
+            goto done;
+        }
+        printf("\n\t\t\tAdded vertex %d", i+1);
+    }
+
+    printf("\n\t\tAdding Edges...");
+
+    /*
+     *
+     *      Graph View Representation - Directed
+     *      * mean down-ward arrow
+     *
+     *      9<------------- 6 -------------------> 7
+     *      ^               ^                      ^
+     *      |               |\                   / |
+     *      |               |  \    /---------- /  |
+     *      |          5<---1    \ *               |
+     *      |          |    ^     2                |
+     *      |          | ---|      \               |
+     *      |          * |           *              |
+     *      10 ------> 4 ----------> 3 ----------> 8
+     */
+    add_edge(g, 1, 6, 0, undirected);
+    add_edge(g, 1, 5, 0, undirected);
+    add_edge(g, 2, 6, 0, undirected);
+    add_edge(g, 2, 3, 0, undirected);
+    add_edge(g, 3, 8, 0, undirected);
+    add_edge(g, 4, 1, 0, undirected);
+    add_edge(g, 4, 3, 0, undirected);
+    add_edge(g, 5, 4, 0, undirected);
+    add_edge(g, 6, 7, 0, undirected);
+    add_edge(g, 6, 9, 0, undirected);
+    add_edge(g, 7, 2, 0, undirected);
+    add_edge(g, 8, 7, 0, undirected);
+    add_edge(g, 10, 4, 0, undirected);
+    add_edge(g, 10, 9, 0, undirected);
+
+    print_graph(g);
+    printf("\n");
+
+    printf("\n\t\tDepth First Traversal Start Vertex 1 - ");
+    graph_dfs(g, 1, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tBreadth First Traversal Start Vertex 1 - ");
+    graph_bfs(g, 1, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tDepth First Traversal Start Vertex 9 - ");
+    graph_dfs(g, 9, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tBreadth First Traversal Start Vertex 9 - ");
+    graph_bfs(g, 9, print_graph_vertex);
+    printf("\n");
+
+done:
+    if (g != NULL) {
+        delete_graph(g);
+    }
+    printf("\n");
+
+}
+
+static void
+test_graph_undirected()
 {
     int error = 0;
     graph_t *g = NULL;
     const uint64_t NUM_VERTICES = 10;
     bool undirected = true;
 
-    printf("\n\tTesting Graphs...");
+    printf("\n\tTesting Undirected Graphs...");
 
     printf("\n\t\tCreating Graph...");
     g = create_graph(NUM_VERTICES);
@@ -632,6 +718,13 @@ done:
     }
     printf("\n");
 
+}
+
+void
+test_graph()
+{
+    test_graph_undirected();
+    test_graph_directed();
 }
 
 static void
