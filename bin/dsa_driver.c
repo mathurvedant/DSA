@@ -556,12 +556,12 @@ test_graph_directed()
     int error = 0;
     graph_t *g = NULL;
     const uint64_t NUM_VERTICES = 10;
-    bool undirected = false;
+    bool directed = true;
 
     printf("\n\tTesting Directed Graphs...");
 
     printf("\n\t\tCreating Graph...");
-    g = create_graph(NUM_VERTICES);
+    g = create_graph(NUM_VERTICES, directed);
     if (g == NULL) {
         printf("\n\t\tFailed to create graph!");
         goto done;
@@ -594,20 +594,20 @@ test_graph_directed()
      *      |          * |           *              |
      *      10 ------> 4 ----------> 3 ----------> 8
      */
-    add_edge(g, 1, 6, 0, undirected);
-    add_edge(g, 1, 5, 0, undirected);
-    add_edge(g, 2, 6, 0, undirected);
-    add_edge(g, 2, 3, 0, undirected);
-    add_edge(g, 3, 8, 0, undirected);
-    add_edge(g, 4, 1, 0, undirected);
-    add_edge(g, 4, 3, 0, undirected);
-    add_edge(g, 5, 4, 0, undirected);
-    add_edge(g, 6, 7, 0, undirected);
-    add_edge(g, 6, 9, 0, undirected);
-    add_edge(g, 7, 2, 0, undirected);
-    add_edge(g, 8, 7, 0, undirected);
-    add_edge(g, 10, 4, 0, undirected);
-    add_edge(g, 10, 9, 0, undirected);
+    add_edge(g, 1, 6, 0);
+    add_edge(g, 1, 5, 0);
+    add_edge(g, 2, 6, 0);
+    add_edge(g, 2, 3, 0);
+    add_edge(g, 3, 8, 0);
+    add_edge(g, 4, 1, 0);
+    add_edge(g, 4, 3, 0);
+    add_edge(g, 5, 4, 0);
+    add_edge(g, 6, 7, 0);
+    add_edge(g, 6, 9, 0);
+    add_edge(g, 7, 2, 0);
+    add_edge(g, 8, 7, 0);
+    add_edge(g, 10, 4, 0);
+    add_edge(g, 10, 9, 0);
 
     print_graph(g);
     printf("\n");
@@ -645,12 +645,12 @@ test_graph_undirected()
     int error = 0;
     graph_t *g = NULL;
     const uint64_t NUM_VERTICES = 10;
-    bool undirected = true;
+    bool directed = false;
 
     printf("\n\tTesting Undirected Graphs...");
 
     printf("\n\t\tCreating Graph...");
-    g = create_graph(NUM_VERTICES);
+    g = create_graph(NUM_VERTICES, directed);
     if (g == NULL) {
         printf("\n\t\tFailed to create graph!");
         goto done;
@@ -681,20 +681,20 @@ test_graph_undirected()
      *      |          |            \              |
      *      10 ------- 4 ----------- 3 ----------- 8
      */
-    add_edge(g, 1, 6, 0, undirected);
-    add_edge(g, 1, 5, 0, undirected);
-    add_edge(g, 1, 4, 0, undirected);
-    add_edge(g, 2, 6, 0, undirected);
-    add_edge(g, 2, 7, 0, undirected);
-    add_edge(g, 2, 3, 0, undirected);
-    add_edge(g, 3, 8, 0, undirected);
-    add_edge(g, 3, 4, 0, undirected);
-    add_edge(g, 4, 5, 0, undirected);
-    add_edge(g, 4, 10, 0, undirected);
-    add_edge(g, 6, 7, 0, undirected);
-    add_edge(g, 6, 9, 0, undirected);
-    add_edge(g, 7, 8, 0, undirected);
-    add_edge(g, 9, 10, 0, undirected);
+    add_edge(g, 1, 6, 0);
+    add_edge(g, 1, 5, 0);
+    add_edge(g, 1, 4, 0);
+    add_edge(g, 2, 6, 0);
+    add_edge(g, 2, 7, 0);
+    add_edge(g, 2, 3, 0);
+    add_edge(g, 3, 8, 0);
+    add_edge(g, 3, 4, 0);
+    add_edge(g, 4, 5, 0);
+    add_edge(g, 4, 10, 0);
+    add_edge(g, 6, 7, 0);
+    add_edge(g, 6, 9, 0);
+    add_edge(g, 7, 8, 0);
+    add_edge(g, 9, 10, 0);
 
     print_graph(g);
     printf("\n");
@@ -769,6 +769,8 @@ test_graph_adjm_to_adjlist()
                         {0, 1, 0, 1, 0}
                      };
 
+    printf("\n\tTesting ADJ Matrix to ADJ List for Graphs...");
+
     /*
      * Allocate a 2D array for adjm and populate using
      * stack 2D array.
@@ -787,13 +789,15 @@ test_graph_adjm_to_adjlist()
         }
     }
 
+    printf("\n\t\tAdjaceny Matrix -");
     for (int i = 0; i < rows; i++) {
+        printf("\n\t\t\t");
         for (int j = 0; j < cols; j++) {
             adjm[i][j] = stackadjm[i][j];
+            printf(" %d ", adjm[i][j]);
         }
     }
 
-    printf("\n\tTesting ADJ Matrix to ADJ List for Graphs...");
 
     g = graph_from_adjmatrix(adjm, 5);
     if (g == NULL) {

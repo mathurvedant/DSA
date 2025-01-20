@@ -14,7 +14,7 @@
 #include <Stack.h>
 
 graph_t *
-create_graph(uint64_t num_vertices)
+create_graph(uint64_t num_vertices, bool is_directed)
 {
     /* Allocate graph object. */
     graph_t *new_graph = (graph_t *)malloc(sizeof(graph_t));
@@ -36,6 +36,9 @@ create_graph(uint64_t num_vertices)
     /* Set num vertices. */
     new_graph->num_vertices = num_vertices;
     new_graph->next_vertex_index = 0;
+
+    /* Set directed or undirected. */
+    new_graph->is_directed = is_directed;
 
 done:
     return new_graph;
@@ -161,8 +164,8 @@ done:
 }
 
 int
-add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
-         uint64_t weight, bool undirected)
+add_edge(graph_t *g, uint64_t src_vertex,
+        uint64_t dst_vertex, uint64_t weight)
 {
     int error = 0;
 
@@ -177,7 +180,7 @@ add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
     }
 
     /* Add reverse edge if undirecte with same weight. */
-    if (undirected) {
+    if (!g->is_directed) {
         error = add_edge_directed(g, dst_vertex, src_vertex, weight);
         if (error) {
             goto done;
@@ -254,8 +257,9 @@ graph_from_adjmatrix(int **adjm, uint64_t numvertices)
 {
     int error = 0;
     graph_t *g = NULL;
+    bool directed = true; //Adjacency matrix has directed edges.
 
-    g = create_graph(numvertices);
+    g = create_graph(numvertices, directed);
     if (g == NULL) {
         goto done;
     }
@@ -270,7 +274,7 @@ graph_from_adjmatrix(int **adjm, uint64_t numvertices)
     for (int i = 0; i < numvertices; i++) {
         for (int j = 0; j < numvertices; j++) {
             if (adjm[i][j]) {
-                error = add_edge(g, i, j, 0, false);
+                error = add_edge(g, i, j, 0);
                 if (error) {
                     goto done;
                 }
@@ -545,6 +549,37 @@ done:
     return error;
 }
 
+static bool
+has_cycle_undirected(graph_t *g)
+{
+    bool has_cycle = false;
+
+    if (g == NULL) {
+        goto done;
+    }
+
+    graph_dfs(g, g->vertices[0].key, &has_cycle, NULL);
+
+done:
+    return has_cycle;
+
+}
+
+static bool
+has_cycle_directed(graph_t *g)
+{
+    bool has_cycle = false;
+
+    if (g == NULL) {
+        goto done;
+    }
+
+    graph_dfs(g, g->vertices[0].key, &has_cycle, NULL);
+
+done:
+    return has_cycle;
+}
+
 bool
 has_cycle(graph_t *g)
 {
@@ -554,11 +589,15 @@ has_cycle(graph_t *g)
         goto done;
     }
 
-    graph_bfs(g, g->vertices[0].key, &has_cycle, NULL);
-
+    if (g->is_directed) {
+        has_cycle = has_cycle_directed(g);
+    } else {
+        has_cycle = has_cycle_undirected(g);
+    }
 done:
     return has_cycle;
 }
+
 
 static void
 print_graph_vertex(graph_vertex_t *v)

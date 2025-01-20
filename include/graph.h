@@ -50,13 +50,14 @@ typedef struct graph_s {
     graph_vertex_t *vertices;
     uint64_t num_vertices;
     uint16_t next_vertex_index;
+    bool is_directed;
 } graph_t;
 
 
 /*
  * Graph LifeCycle.
  */
-graph_t *create_graph(uint64_t num_vertices);
+graph_t *create_graph(uint64_t num_vertices, bool is_directed);
 void delete_graph(graph_t *g);
 
 /*
@@ -64,7 +65,7 @@ void delete_graph(graph_t *g);
  */
 int add_vertex(graph_t *g, uint64_t key);
 int add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
-             uint64_t weight, bool undirected);
+             uint64_t weight);
 
 /*
  * Graph Print.
