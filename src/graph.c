@@ -249,6 +249,44 @@ print_graph(graph_t *g)
     }
 }
 
+graph_t*
+graph_from_adjmatrix(int **adjm, uint64_t numvertices)
+{
+    int error = 0;
+    graph_t *g = NULL;
+
+    g = create_graph(numvertices);
+    if (g == NULL) {
+        goto done;
+    }
+
+    for (int i = 0; i < numvertices; i++) {
+        error = add_vertex(g, i);
+        if (error) {
+            goto done;
+        }
+    }
+
+    for (int i = 0; i < numvertices; i++) {
+        for (int j = 0; j < numvertices; j++) {
+            if (adjm[i][j]) {
+                error = add_edge(g, i, j, 0, false);
+                if (error) {
+                    goto done;
+                }
+            }
+        }
+    }
+
+done:
+    if (error && g) {
+        delete_graph(g);
+        g = NULL;
+    }
+    return g;
+
+}
+
 static int
 graph_dfs_connected(graph_t *g, graph_vertex_t *start,
                     bool *visited, graphtraversalcb cb)

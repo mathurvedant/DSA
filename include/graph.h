@@ -67,3 +67,6 @@ void print_graph(graph_t *g);
 typedef void (*graphtraversalcb)(graph_vertex_t *v);
 int graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
 int graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
+
+graph_t *
+graph_from_adjmatrix(int **adjm, uint64_t numvertices);
