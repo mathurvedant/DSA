@@ -613,19 +613,22 @@ test_graph_directed()
     printf("\n");
 
     printf("\n\t\tDepth First Traversal Start Vertex 1 - ");
-    graph_dfs(g, 1, print_graph_vertex);
+    graph_dfs(g, 1, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tBreadth First Traversal Start Vertex 1 - ");
-    graph_bfs(g, 1, print_graph_vertex);
+    graph_bfs(g, 1, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tDepth First Traversal Start Vertex 9 - ");
-    graph_dfs(g, 9, print_graph_vertex);
+    graph_dfs(g, 9, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tBreadth First Traversal Start Vertex 9 - ");
-    graph_bfs(g, 9, print_graph_vertex);
+    graph_bfs(g, 9, NULL, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tGraph has cycle - %s", has_cycle(g) ? "True" : "False");
     printf("\n");
 
 done:
@@ -697,19 +700,39 @@ test_graph_undirected()
     printf("\n");
 
     printf("\n\t\tDepth First Traversal Start Vertex 1 - ");
-    graph_dfs(g, 1, print_graph_vertex);
+    graph_dfs(g, 1, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tBreadth First Traversal Start Vertex 1 - ");
-    graph_bfs(g, 1, print_graph_vertex);
+    graph_bfs(g, 1, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tDepth First Traversal Start Vertex 9 - ");
-    graph_dfs(g, 9, print_graph_vertex);
+    graph_dfs(g, 9, NULL, print_graph_vertex);
     printf("\n");
 
     printf("\n\t\tBreadth First Traversal Start Vertex 9 - ");
-    graph_bfs(g, 9, print_graph_vertex);
+    graph_bfs(g, 9, NULL, print_graph_vertex);
+    printf("\n");
+
+    printf("\n\t\tGraph has cycle - %s", has_cycle(g) ? "True" : "False");
+    printf("\n");
+
+    printf("\n\t\tShortest Path from Vertex 10 to 7 - ");
+    shortest_path_undirected(g, 10, 7);
+    printf("\n");
+
+    printf("\n\t\tShortest Path from Vertex 6 to 1 - ");
+    shortest_path_undirected(g, 6, 1);
+    printf("\n");
+
+
+    printf("\n\t\tShortest Path from Vertex 1 to 8 - ");
+    shortest_path_undirected(g, 1, 8);
+    printf("\n");
+
+    printf("\n\t\tShortest Path from Vertex 2 to 5 - ");
+    shortest_path_undirected(g, 2, 5);
     printf("\n");
 
 done:

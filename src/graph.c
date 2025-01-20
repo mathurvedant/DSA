@@ -289,7 +289,8 @@ done:
 
 static int
 graph_dfs_connected(graph_t *g, graph_vertex_t *start,
-                    bool *visited, graphtraversalcb cb)
+                    bool *visited, bool *has_cycle,
+                    graphtraversalcb cb)
 {
     int error = 0;
     dsa_stack_t *st = NULL;
@@ -316,9 +317,18 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
 
         // Process Vertex if not visited already.
         // Mark as visited
+        //
+        // If already visited we have a cycle
+        // Mark that.
         if (!visited[curr_vertex->idx]) {
             visited[curr_vertex->idx] = true;
-            cb(curr_vertex);
+            if (cb) {
+                cb(curr_vertex);
+            }
+        } else {
+            if (has_cycle) {
+                *has_cycle = true;
+            }
         }
 
         // Add adjacent vertices to stack if not
@@ -341,7 +351,8 @@ done:
 }
 
 int
-graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
+graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
+          graphtraversalcb cb)
 {
     int error = 0;
     bool *visited = NULL;
@@ -372,7 +383,7 @@ graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
     // DFS
     {
         /* DFS from given start vertex. */
-        error = graph_dfs_connected(g, start, visited, cb);
+        error = graph_dfs_connected(g, start, visited, has_cycle, cb);
         if (error) {
             goto done;
         }
@@ -384,7 +395,7 @@ graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         for (int i = 0; i < num_vertices; i++) {
             graph_vertex_t *v = find_vertex_from_index(g, i);
             if (visited[i] == false) {
-                error = graph_dfs_connected(g, v, visited, cb);
+                error = graph_dfs_connected(g, v, visited, has_cycle, cb);
                 if (error) {
                     goto done;
                 }
@@ -402,7 +413,8 @@ done:
 
 static int
 graph_bfs_connected(graph_t *g, graph_vertex_t *start,
-                    bool *visited, graphtraversalcb cb)
+                    bool *visited, bool *has_cycle,
+                    graphtraversalcb cb)
 {
     int error = 0;
     simple_q *q = NULL;
@@ -419,31 +431,49 @@ graph_bfs_connected(graph_t *g, graph_vertex_t *start,
         simple_q_enqueue(q, (uint64_t)(start));
 
         while (!simple_q_is_empty(q)) {
-
             uint64_t temp = 0;
             graph_vertex_t *curr_vertex = NULL;
             graph_edge_t *curr_edge = NULL;
+            uint64_t level_length = q->curr_size;
+            bool did_visit_in_curr_level = false;
 
-            // Extract Vertex from Queue
-            simple_q_dequeue(q, &temp);
-            curr_vertex = (graph_vertex_t *)(temp);
-            curr_edge = curr_vertex->edges;
+            while (level_length > 0) {
 
-            // Process Vertex if not visited already.
-            // Mark as visited
-            if (!visited[curr_vertex->idx]) {
-                visited[curr_vertex->idx] = true;
-                cb(curr_vertex);
-            }
+                --level_length;
 
-            // Add adjacent vertices to stack if not
-            // visited.
-            while (curr_edge != NULL) {
-                graph_vertex_t *v = curr_edge->dst;
-                if (!visited[v->idx]) {
-                    simple_q_enqueue(q, (uint64_t)(curr_edge->dst));
+                // Extract Vertex from Queue
+                simple_q_dequeue(q, &temp);
+                curr_vertex = (graph_vertex_t *)(temp);
+                curr_edge = curr_vertex->edges;
+
+                // Process Vertex if not visited already.
+                // Mark as visited
+                // If already visited, we have a cycle.
+                // Mark that.
+                if (!visited[curr_vertex->idx]) {
+                    visited[curr_vertex->idx] = true;
+                    if (cb) {
+                        cb(curr_vertex);
+                    }
+                    did_visit_in_curr_level= true;
+                } else {
+                    if (has_cycle) {
+                        *has_cycle = true;
+                    }
                 }
-                curr_edge = curr_edge->edge_next;
+
+                // Add adjacent vertices to stack if not
+                // visited.
+                while (curr_edge != NULL) {
+                    graph_vertex_t *v = curr_edge->dst;
+                    if (!visited[v->idx]) {
+                        simple_q_enqueue(q, (uint64_t)(curr_edge->dst));
+                    }
+                    curr_edge = curr_edge->edge_next;
+                }
+            }
+            if (cb && did_visit_in_curr_level) {
+                printf(": ");
             }
         }
     }
@@ -456,7 +486,8 @@ done:
 }
 
 int
-graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
+graph_bfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
+          graphtraversalcb cb)
 {
     int error = 0;
     bool *visited = NULL;
@@ -487,7 +518,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
     // BFS
     {
         /* BFS from given start vertex. */
-        error = graph_bfs_connected(g, start, visited, cb);
+        error = graph_bfs_connected(g, start, visited, has_cycle, cb);
         if (error) {
             goto done;
         }
@@ -499,7 +530,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         for (int i = 0; i < num_vertices; i++) {
             graph_vertex_t *v = find_vertex_from_index(g, i);
             if (visited[i] == false) {
-                error = graph_bfs_connected(g, v, visited, cb);
+                error = graph_bfs_connected(g, v, visited, has_cycle, cb);
                 if (error) {
                     goto done;
                 }
@@ -514,3 +545,69 @@ done:
     return error;
 }
 
+bool
+has_cycle(graph_t *g)
+{
+    bool has_cycle = false;
+
+    if (g == NULL) {
+        goto done;
+    }
+
+    graph_bfs(g, g->vertices[0].key, &has_cycle, NULL);
+
+done:
+    return has_cycle;
+}
+
+static void
+print_graph_vertex(graph_vertex_t *v)
+{
+    if (v) {
+        printf("%llu ", v->key);
+    }
+}
+
+
+int
+shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
+{
+    int error = 0;
+    bool *visited = NULL;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+    graph_vertex_t *end = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, src);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    end = find_vertex_from_key(g, dst);
+    if (end == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        visited[i] = false;
+    }
+
+    //graph_bfs_connected(g, start, end, visited, print_graph_vertex);
+
+done:
+    return error;
+}
