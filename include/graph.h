@@ -78,8 +78,7 @@ void print_graph(graph_t *g);
 typedef void (*graphtraversalcb)(graph_vertex_t *v);
 int graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
               graphtraversalcb cb);
-int graph_bfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
-              graphtraversalcb cb);
+int graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
 
 /*
  * Graph utility functions.

@@ -299,6 +299,8 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
     int error = 0;
     dsa_stack_t *st = NULL;
     uint64_t num_vertices = g->num_vertices;
+    graph_vertex_t *parent = NULL;
+    graph_vertex_t *curr_vertex = start;
 
     st = create_dsa_stack(num_vertices);
     if (st == NULL) {
@@ -306,12 +308,11 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
         goto done;
     }
 
-    dsa_stack_push(st, (uint64_t)(start));
+    dsa_stack_push(st, (uint64_t)(curr_vertex));
 
     while (!dsa_stack_is_empty(st)) {
 
         uint64_t temp = 0;
-        graph_vertex_t *curr_vertex = NULL;
         graph_edge_t *curr_edge = NULL;
 
         // Extract Vertex from Stack
@@ -321,17 +322,10 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
 
         // Process Vertex if not visited already.
         // Mark as visited
-        //
-        // If already visited we have a cycle
-        // Mark that.
         if (!visited[curr_vertex->idx]) {
             visited[curr_vertex->idx] = true;
             if (cb) {
                 cb(curr_vertex);
-            }
-        } else {
-            if (has_cycle) {
-                *has_cycle = true;
             }
         }
 
@@ -341,9 +335,16 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
             graph_vertex_t *v = curr_edge->dst;
             if (!visited[v->idx]) {
                 dsa_stack_push(st, (uint64_t)(curr_edge->dst));
+            } else {
+                if (v != parent) {
+                    if (has_cycle) {
+                        *has_cycle = true;
+                    }
+                }
             }
             curr_edge = curr_edge->edge_next;
         }
+        parent = curr_vertex;
     }
 
 done:
@@ -417,8 +418,7 @@ done:
 
 static int
 graph_bfs_connected(graph_t *g, graph_vertex_t *start,
-                    bool *visited, bool *has_cycle,
-                    graphtraversalcb cb)
+                    bool *visited, graphtraversalcb cb)
 {
     int error = 0;
     simple_q *q = NULL;
@@ -452,18 +452,12 @@ graph_bfs_connected(graph_t *g, graph_vertex_t *start,
 
                 // Process Vertex if not visited already.
                 // Mark as visited
-                // If already visited, we have a cycle.
-                // Mark that.
                 if (!visited[curr_vertex->idx]) {
                     visited[curr_vertex->idx] = true;
                     if (cb) {
                         cb(curr_vertex);
                     }
                     did_visit_in_curr_level= true;
-                } else {
-                    if (has_cycle) {
-                        *has_cycle = true;
-                    }
                 }
 
                 // Add adjacent vertices to stack if not
@@ -490,8 +484,7 @@ done:
 }
 
 int
-graph_bfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
-          graphtraversalcb cb)
+graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
 {
     int error = 0;
     bool *visited = NULL;
@@ -522,7 +515,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
     // BFS
     {
         /* BFS from given start vertex. */
-        error = graph_bfs_connected(g, start, visited, has_cycle, cb);
+        error = graph_bfs_connected(g, start, visited, cb);
         if (error) {
             goto done;
         }
@@ -534,7 +527,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
         for (int i = 0; i < num_vertices; i++) {
             graph_vertex_t *v = find_vertex_from_index(g, i);
             if (visited[i] == false) {
-                error = graph_bfs_connected(g, v, visited, has_cycle, cb);
+                error = graph_bfs_connected(g, v, visited, cb);
                 if (error) {
                     goto done;
                 }
@@ -549,37 +542,6 @@ done:
     return error;
 }
 
-static bool
-has_cycle_undirected(graph_t *g)
-{
-    bool has_cycle = false;
-
-    if (g == NULL) {
-        goto done;
-    }
-
-    graph_dfs(g, g->vertices[0].key, &has_cycle, NULL);
-
-done:
-    return has_cycle;
-
-}
-
-static bool
-has_cycle_directed(graph_t *g)
-{
-    bool has_cycle = false;
-
-    if (g == NULL) {
-        goto done;
-    }
-
-    graph_dfs(g, g->vertices[0].key, &has_cycle, NULL);
-
-done:
-    return has_cycle;
-}
-
 bool
 has_cycle(graph_t *g)
 {
@@ -589,11 +551,8 @@ has_cycle(graph_t *g)
         goto done;
     }
 
-    if (g->is_directed) {
-        has_cycle = has_cycle_directed(g);
-    } else {
-        has_cycle = has_cycle_undirected(g);
-    }
+    graph_dfs(g, g->vertices[0].key , &has_cycle, NULL);
+
 done:
     return has_cycle;
 }
@@ -645,7 +604,6 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
         visited[i] = false;
     }
 
-    //graph_bfs_connected(g, start, end, visited, print_graph_vertex);
 
 done:
     return error;
