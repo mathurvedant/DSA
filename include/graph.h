@@ -84,7 +84,7 @@ int graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
  * Graph utility functions.
  */
 graph_t *
-graph_from_adjmatrix(int **adjm, uint64_t numvertices);
+graph_from_adjmatrix(int **adjm, uint64_t numvertices, bool isdirected);
 
 /*
  * Graph Shortest Path Algos.

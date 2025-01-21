@@ -550,6 +550,53 @@ print_graph_vertex(graph_vertex_t *v)
     }
 }
 
+
+/*
+ * Free 2D adjaceny matrix
+ */
+static void
+free_adjm(int **adjm, int rows)
+{
+    if (adjm != NULL) {
+        for (int i = 0; i < rows; i++) {
+            if (adjm[i] != NULL) {
+                free(adjm[i]);
+            }
+        }
+        free(adjm);
+    }
+}
+
+/*
+ * Allocate a 2D adjacency matrix
+ */
+static int**
+alloc_adjm(int rows, int cols)
+{
+    bool error = false;
+
+    int **adjm = (int **)malloc(sizeof(int*) * rows);
+    if (adjm == NULL) {
+        printf("\n\tFailed to allocate ADJ Matrix");
+        goto done;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        adjm[i] = (int *)malloc(sizeof(int) * cols);
+        if (adjm[i] == NULL) {
+            printf("\n\tFailed to allocate ADJ Matrix");
+            error = true;
+            goto done;
+        }
+    }
+
+done:
+    if (error) {
+        free_adjm(adjm, rows);
+    }
+    return adjm;
+}
+
 /*
  * X |  0   1   2   3   4
  *------------------------
@@ -569,6 +616,7 @@ test_graph_adjm_to_adjlist()
     graph_t *g = NULL;
     const int rows = 5;
     const int cols = 5;
+    bool isdirected = false;
     int stackadjm[rows][cols] = {
                         {0, 0, 1, 0 ,0},
                         {0, 0, 0, 1, 1},
@@ -583,18 +631,10 @@ test_graph_adjm_to_adjlist()
      * Allocate a 2D array for adjm and populate using
      * stack 2D array.
      */
-    int **adjm = (int **)malloc(sizeof(int*) * rows);
+    int **adjm = alloc_adjm(rows, cols);
     if (adjm == NULL) {
         printf("\n\tFailed to allocate ADJ Matrix");
         goto done;
-    }
-
-    for (int i = 0; i < rows; i++) {
-        adjm[i] = (int *)malloc(sizeof(int) * cols);
-        if (adjm[i] == NULL) {
-            printf("\n\tFailed to allocate ADJ Matrix");
-            goto done;
-        }
     }
 
     printf("\n\t\tAdjaceny Matrix -");
@@ -607,7 +647,7 @@ test_graph_adjm_to_adjlist()
     }
 
 
-    g = graph_from_adjmatrix(adjm, 5);
+    g = graph_from_adjmatrix(adjm, 5, isdirected);
     if (g == NULL) {
         printf("\n\tFailed to create ADJ List from ADJ Matrix");
         goto done;
@@ -617,14 +657,7 @@ test_graph_adjm_to_adjlist()
     printf("\n");
 
 done:
-    if (adjm != NULL) {
-        for (int i = 0; i < rows; i++) {
-            if (adjm[i] != NULL) {
-                free(adjm[i]);
-            }
-        }
-        free(adjm);
-    }
+    free_adjm(adjm, rows);
     if (g != NULL) {
         delete_graph(g);
     }
@@ -827,14 +860,14 @@ done:
     printf("\n");
 }
 
-
 static void
-test_graph_cycle_no()
+test_graph_cycle_undirected_no()
 {
     graph_t *g = NULL;
     const int rows = 5;
     const int cols = 5;
     bool cycle = false;
+    bool isdirected = false;
     int stackadjm[rows][cols] = {
                         {0, 0, 1, 0 ,0},
                         {0, 0, 0, 1, 1},
@@ -843,22 +876,10 @@ test_graph_cycle_no()
                         {0, 1, 0, 0, 0}
                      };
 
-    /*
-     * Allocate a 2D array for adjm and populate using
-     * stack 2D array.
-     */
-    int **adjm = (int **)malloc(sizeof(int*) * rows);
+    int **adjm = alloc_adjm(rows, cols);
     if (adjm == NULL) {
         printf("\n\tFailed to allocate ADJ Matrix");
         goto done;
-    }
-
-    for (int i = 0; i < rows; i++) {
-        adjm[i] = (int *)malloc(sizeof(int) * cols);
-        if (adjm[i] == NULL) {
-            printf("\n\tFailed to allocate ADJ Matrix");
-            goto done;
-        }
     }
 
     for (int i = 0; i < rows; i++) {
@@ -867,8 +888,7 @@ test_graph_cycle_no()
         }
     }
 
-
-    g = graph_from_adjmatrix(adjm, 5);
+    g = graph_from_adjmatrix(adjm, 5, isdirected);
     if (g == NULL) {
         printf("\n\tFailed to create ADJ List from ADJ Matrix");
         goto done;
@@ -879,20 +899,13 @@ test_graph_cycle_no()
 
     cycle = has_cycle(g);
     if (cycle) {
-        printf("\n\t\tGraph does not have cycle. False Detection!");
+        printf("\n\t\tUndirected Graph does not have cycle. False Detection!");
     } else {
-        printf("\n\t\tGraph does not have cycle. No cycle detected as expected.");
+        printf("\n\t\tUndirected Graph does not have cycle. No cycle detected as expected.");
     }
 
 done:
-    if (adjm != NULL) {
-        for (int i = 0; i < rows; i++) {
-            if (adjm[i] != NULL) {
-                free(adjm[i]);
-            }
-        }
-        free(adjm);
-    }
+    free_adjm(adjm, rows);
     if (g != NULL) {
         delete_graph(g);
     }
@@ -900,12 +913,13 @@ done:
 }
 
 static void
-test_graph_cycle_yes()
+test_graph_cycle_undirected_yes()
 {
     graph_t *g = NULL;
     const int rows = 5;
     const int cols = 5;
     bool cycle = false;
+    bool isdirected = false;
     int stackadjm[rows][cols] = {
                         {0, 0, 1, 0 ,0},
                         {0, 0, 0, 1, 1},
@@ -914,22 +928,10 @@ test_graph_cycle_yes()
                         {0, 1, 0, 1, 0}
                      };
 
-    /*
-     * Allocate a 2D array for adjm and populate using
-     * stack 2D array.
-     */
-    int **adjm = (int **)malloc(sizeof(int*) * rows);
+    int **adjm = alloc_adjm(rows, cols);
     if (adjm == NULL) {
         printf("\n\tFailed to allocate ADJ Matrix");
         goto done;
-    }
-
-    for (int i = 0; i < rows; i++) {
-        adjm[i] = (int *)malloc(sizeof(int) * cols);
-        if (adjm[i] == NULL) {
-            printf("\n\tFailed to allocate ADJ Matrix");
-            goto done;
-        }
     }
 
     for (int i = 0; i < rows; i++) {
@@ -939,7 +941,7 @@ test_graph_cycle_yes()
     }
 
 
-    g = graph_from_adjmatrix(adjm, 5);
+    g = graph_from_adjmatrix(adjm, 5, isdirected);
     if (g == NULL) {
         printf("\n\tFailed to create ADJ List from ADJ Matrix");
         goto done;
@@ -950,20 +952,118 @@ test_graph_cycle_yes()
 
     cycle = has_cycle(g);
     if (cycle) {
-        printf("\n\t\tGraph has cycle. Detected cycle as expected.");
+        printf("\n\t\tUndirected Graph has cycle. Detected cycle as expected.");
     } else {
-        printf("\n\t\tGraph has cycle. Missed detecting a cycle!");
+        printf("\n\t\tUndirected Graph has cycle. Missed detecting a cycle!");
     }
 
 done:
-    if (adjm != NULL) {
-        for (int i = 0; i < rows; i++) {
-            if (adjm[i] != NULL) {
-                free(adjm[i]);
-            }
-        }
-        free(adjm);
+    free_adjm(adjm, rows);
+    if (g != NULL) {
+        delete_graph(g);
     }
+    printf("\n");
+}
+
+static void
+test_graph_cycle_directed_no()
+{
+    graph_t *g = NULL;
+    const int rows = 5;
+    const int cols = 5;
+    bool cycle = false;
+    bool isdirected = true;
+    int stackadjm[rows][cols] = {
+                        {0, 0, 1, 0 ,0},
+                        {0, 0, 0, 1, 0},
+                        {0, 0, 0, 0, 0},
+                        {0, 0, 1, 0, 1},
+                        {0, 0, 0, 0, 0}
+                     };
+
+    int **adjm = alloc_adjm(rows, cols);
+    if (adjm == NULL) {
+        printf("\n\tFailed to allocate ADJ Matrix");
+        goto done;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            adjm[i][j] = stackadjm[i][j];
+        }
+    }
+
+    g = graph_from_adjmatrix(adjm, 5, isdirected);
+    if (g == NULL) {
+        printf("\n\tFailed to create ADJ List from ADJ Matrix");
+        goto done;
+    }
+
+    print_graph(g);
+    printf("\n");
+
+    cycle = has_cycle(g);
+    if (cycle) {
+        printf("\n\t\tDirected Graph does not have cycle. False Detection!");
+    } else {
+        printf("\n\t\tDirected Graph does not have cycle. No cycle detected as expected.");
+    }
+
+done:
+    free_adjm(adjm, rows);
+    if (g != NULL) {
+        delete_graph(g);
+    }
+    printf("\n");
+}
+
+static void
+test_graph_cycle_directed_yes()
+{
+    graph_t *g = NULL;
+    const int rows = 5;
+    const int cols = 5;
+    bool cycle = false;
+    bool isdirected = true;
+    int stackadjm[rows][cols] = {
+                        {0, 0, 1, 0 ,0},
+                        {0, 0, 0, 1, 0},
+                        {0, 0, 0, 0, 0},
+                        {0, 0, 1, 0, 1},
+                        {0, 1, 0, 0, 0}
+                     };
+
+    int **adjm = alloc_adjm(rows, cols);
+    if (adjm == NULL) {
+        printf("\n\tFailed to allocate ADJ Matrix");
+        goto done;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            adjm[i][j] = stackadjm[i][j];
+        }
+    }
+
+
+    g = graph_from_adjmatrix(adjm, 5, isdirected);
+    if (g == NULL) {
+        printf("\n\tFailed to create ADJ List from ADJ Matrix");
+        goto done;
+    }
+
+    print_graph(g);
+    printf("\n");
+
+    cycle = has_cycle(g);
+    if (cycle) {
+        printf("\n\t\tDirected Graph has cycle. Detected cycle as expected.");
+    } else {
+        printf("\n\t\tDirected Graph has cycle. Missed detecting a cycle!");
+    }
+
+done:
+    free_adjm(adjm, rows);
     if (g != NULL) {
         delete_graph(g);
     }
@@ -974,8 +1074,12 @@ static void
 test_graph_cycle()
 {
     printf("\n\tTesting Graph Cycles...");
-    test_graph_cycle_yes();
-    test_graph_cycle_no();
+
+    test_graph_cycle_undirected_yes();
+    test_graph_cycle_undirected_no();
+
+    test_graph_cycle_directed_yes();
+    test_graph_cycle_directed_no();
 }
 
 void

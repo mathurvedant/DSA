@@ -253,12 +253,20 @@ print_graph(graph_t *g)
 }
 
 graph_t*
-graph_from_adjmatrix(int **adjm, uint64_t numvertices)
+graph_from_adjmatrix(int **adjm, uint64_t numvertices, bool isdirected)
 {
     int error = 0;
     graph_t *g = NULL;
-    bool directed = true; //Adjacency matrix has directed edges.
 
+    /*
+     * Adjacency matrix has directed edges only
+     * so mark as directed to create graph and
+     * add edges accordingly.
+     *
+     * Later once graph is ready, mark graph as directed
+     * or undirected based on argument.
+     */
+    bool directed = true;
     g = create_graph(numvertices, directed);
     if (g == NULL) {
         goto done;
@@ -281,6 +289,8 @@ graph_from_adjmatrix(int **adjm, uint64_t numvertices)
             }
         }
     }
+
+    g->is_directed = isdirected;
 
 done:
     if (error && g) {
@@ -336,7 +346,13 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
             if (!visited[v->idx]) {
                 dsa_stack_push(st, (uint64_t)(curr_edge->dst));
             } else {
-                if (v != parent) {
+                if (!g->is_directed) {
+                    if (v != parent) {
+                        if (has_cycle) {
+                            *has_cycle = true;
+                        }
+                    }
+                } else {
                     if (has_cycle) {
                         *has_cycle = true;
                     }
