@@ -14,7 +14,7 @@
 #include <Stack.h>
 
 graph_t *
-create_graph(uint64_t num_vertices)
+create_graph(uint64_t num_vertices, bool is_directed)
 {
     /* Allocate graph object. */
     graph_t *new_graph = (graph_t *)malloc(sizeof(graph_t));
@@ -36,6 +36,9 @@ create_graph(uint64_t num_vertices)
     /* Set num vertices. */
     new_graph->num_vertices = num_vertices;
     new_graph->next_vertex_index = 0;
+
+    /* Set directed or undirected. */
+    new_graph->is_directed = is_directed;
 
 done:
     return new_graph;
@@ -161,8 +164,8 @@ done:
 }
 
 int
-add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
-         uint64_t weight, bool undirected)
+add_edge(graph_t *g, uint64_t src_vertex,
+        uint64_t dst_vertex, uint64_t weight)
 {
     int error = 0;
 
@@ -177,7 +180,7 @@ add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
     }
 
     /* Add reverse edge if undirecte with same weight. */
-    if (undirected) {
+    if (!g->is_directed) {
         error = add_edge_directed(g, dst_vertex, src_vertex, weight);
         if (error) {
             goto done;
@@ -250,12 +253,21 @@ print_graph(graph_t *g)
 }
 
 graph_t*
-graph_from_adjmatrix(int **adjm, uint64_t numvertices)
+graph_from_adjmatrix(int **adjm, uint64_t numvertices, bool isdirected)
 {
     int error = 0;
     graph_t *g = NULL;
 
-    g = create_graph(numvertices);
+    /*
+     * Adjacency matrix has directed edges only
+     * so mark as directed to create graph and
+     * add edges accordingly.
+     *
+     * Later once graph is ready, mark graph as directed
+     * or undirected based on argument.
+     */
+    bool directed = true;
+    g = create_graph(numvertices, directed);
     if (g == NULL) {
         goto done;
     }
@@ -270,13 +282,15 @@ graph_from_adjmatrix(int **adjm, uint64_t numvertices)
     for (int i = 0; i < numvertices; i++) {
         for (int j = 0; j < numvertices; j++) {
             if (adjm[i][j]) {
-                error = add_edge(g, i, j, 0, false);
+                error = add_edge(g, i, j, 0);
                 if (error) {
                     goto done;
                 }
             }
         }
     }
+
+    g->is_directed = isdirected;
 
 done:
     if (error && g) {
@@ -289,11 +303,14 @@ done:
 
 static int
 graph_dfs_connected(graph_t *g, graph_vertex_t *start,
-                    bool *visited, graphtraversalcb cb)
+                    bool *visited, bool *callstack,
+                    bool *has_cycle, graphtraversalcb cb)
 {
     int error = 0;
     dsa_stack_t *st = NULL;
     uint64_t num_vertices = g->num_vertices;
+    graph_vertex_t *parent = NULL;
+    graph_vertex_t *curr_vertex = start;
 
     st = create_dsa_stack(num_vertices);
     if (st == NULL) {
@@ -301,12 +318,11 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
         goto done;
     }
 
-    dsa_stack_push(st, (uint64_t)(start));
+    dsa_stack_push(st, (uint64_t)(curr_vertex));
 
     while (!dsa_stack_is_empty(st)) {
 
         uint64_t temp = 0;
-        graph_vertex_t *curr_vertex = NULL;
         graph_edge_t *curr_edge = NULL;
 
         // Extract Vertex from Stack
@@ -318,7 +334,10 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
         // Mark as visited
         if (!visited[curr_vertex->idx]) {
             visited[curr_vertex->idx] = true;
-            cb(curr_vertex);
+            callstack[curr_vertex->idx] = true;
+            if (cb) {
+                cb(curr_vertex);
+            }
         }
 
         // Add adjacent vertices to stack if not
@@ -327,9 +346,28 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
             graph_vertex_t *v = curr_edge->dst;
             if (!visited[v->idx]) {
                 dsa_stack_push(st, (uint64_t)(curr_edge->dst));
+            } else {
+                // Parent tracking based logic for
+                // undirected graphs.
+                if (!g->is_directed) {
+                    if (v != parent) {
+                        if (has_cycle) {
+                            *has_cycle = true;
+                        }
+                    }
+                } else {
+                    // Callstack tracking based logic
+                    // for directed graphs.
+                    if (callstack[v->idx]) {
+                        if (has_cycle) {
+                            *has_cycle = true;
+                        }
+                    }
+                }
             }
             curr_edge = curr_edge->edge_next;
         }
+        parent = curr_vertex;
     }
 
 done:
@@ -340,11 +378,21 @@ done:
     return error;
 }
 
+static void
+reset_callstack(bool *callstack, uint64_t numvertices)
+{
+    for (int i = 0; i < numvertices; i++) {
+        callstack[i] = false;
+    }
+}
+
 int
-graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
+graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
+          graphtraversalcb cb)
 {
     int error = 0;
     bool *visited = NULL;
+    bool *incallstack = NULL;
     uint64_t num_vertices = 0;
     graph_vertex_t *start = NULL;
 
@@ -365,14 +413,23 @@ graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         error = ENOMEM;
         goto done;
     }
+
+    incallstack = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (incallstack == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
     for (int i = 0; i < num_vertices; i++) {
         visited[i] = false;
+        incallstack[i] = false;
     }
 
     // DFS
     {
         /* DFS from given start vertex. */
-        error = graph_dfs_connected(g, start, visited, cb);
+        error = graph_dfs_connected(g, start, visited, incallstack,
+                                    has_cycle, cb);
         if (error) {
             goto done;
         }
@@ -384,7 +441,9 @@ graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         for (int i = 0; i < num_vertices; i++) {
             graph_vertex_t *v = find_vertex_from_index(g, i);
             if (visited[i] == false) {
-                error = graph_dfs_connected(g, v, visited, cb);
+                reset_callstack(incallstack, num_vertices);
+                error = graph_dfs_connected(g, v, visited, incallstack,
+                                            has_cycle, cb);
                 if (error) {
                     goto done;
                 }
@@ -393,6 +452,12 @@ graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
     }
 
 done:
+
+    if (incallstack) {
+        free(incallstack);
+    }
+
+
     if (visited) {
         free(visited);
     }
@@ -419,31 +484,43 @@ graph_bfs_connected(graph_t *g, graph_vertex_t *start,
         simple_q_enqueue(q, (uint64_t)(start));
 
         while (!simple_q_is_empty(q)) {
-
             uint64_t temp = 0;
             graph_vertex_t *curr_vertex = NULL;
             graph_edge_t *curr_edge = NULL;
+            uint64_t level_length = q->curr_size;
+            bool did_visit_in_curr_level = false;
 
-            // Extract Vertex from Queue
-            simple_q_dequeue(q, &temp);
-            curr_vertex = (graph_vertex_t *)(temp);
-            curr_edge = curr_vertex->edges;
+            while (level_length > 0) {
 
-            // Process Vertex if not visited already.
-            // Mark as visited
-            if (!visited[curr_vertex->idx]) {
-                visited[curr_vertex->idx] = true;
-                cb(curr_vertex);
-            }
+                --level_length;
 
-            // Add adjacent vertices to stack if not
-            // visited.
-            while (curr_edge != NULL) {
-                graph_vertex_t *v = curr_edge->dst;
-                if (!visited[v->idx]) {
-                    simple_q_enqueue(q, (uint64_t)(curr_edge->dst));
+                // Extract Vertex from Queue
+                simple_q_dequeue(q, &temp);
+                curr_vertex = (graph_vertex_t *)(temp);
+                curr_edge = curr_vertex->edges;
+
+                // Process Vertex if not visited already.
+                // Mark as visited
+                if (!visited[curr_vertex->idx]) {
+                    visited[curr_vertex->idx] = true;
+                    if (cb) {
+                        cb(curr_vertex);
+                    }
+                    did_visit_in_curr_level= true;
                 }
-                curr_edge = curr_edge->edge_next;
+
+                // Add adjacent vertices to stack if not
+                // visited.
+                while (curr_edge != NULL) {
+                    graph_vertex_t *v = curr_edge->dst;
+                    if (!visited[v->idx]) {
+                        simple_q_enqueue(q, (uint64_t)(curr_edge->dst));
+                    }
+                    curr_edge = curr_edge->edge_next;
+                }
+            }
+            if (cb && did_visit_in_curr_level) {
+                printf(": ");
             }
         }
     }
@@ -480,6 +557,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         error = ENOMEM;
         goto done;
     }
+
     for (int i = 0; i < num_vertices; i++) {
         visited[i] = false;
     }
@@ -514,3 +592,69 @@ done:
     return error;
 }
 
+bool
+has_cycle(graph_t *g)
+{
+    bool has_cycle = false;
+
+    if (g == NULL) {
+        goto done;
+    }
+
+    graph_dfs(g, g->vertices[0].key , &has_cycle, NULL);
+
+done:
+    return has_cycle;
+}
+
+
+static void
+print_graph_vertex(graph_vertex_t *v)
+{
+    if (v) {
+        printf("%llu ", v->key);
+    }
+}
+
+
+int
+shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
+{
+    int error = 0;
+    bool *visited = NULL;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+    graph_vertex_t *end = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, src);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    end = find_vertex_from_key(g, dst);
+    if (end == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        visited[i] = false;
+    }
+
+
+done:
+    return error;
+}

@@ -50,23 +50,44 @@ typedef struct graph_s {
     graph_vertex_t *vertices;
     uint64_t num_vertices;
     uint16_t next_vertex_index;
+    bool is_directed;
 } graph_t;
 
 
-graph_t *create_graph(uint64_t num_vertices);
-
-int add_vertex(graph_t *g, uint64_t key);
-
-int add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
-             uint64_t weight, bool undirected);
-
+/*
+ * Graph LifeCycle.
+ */
+graph_t *create_graph(uint64_t num_vertices, bool is_directed);
 void delete_graph(graph_t *g);
 
+/*
+ * Graph Vertex and Edge additions.
+ */
+int add_vertex(graph_t *g, uint64_t key);
+int add_edge(graph_t *g, uint64_t src_vertex, uint64_t dst_vertex,
+             uint64_t weight);
+
+/*
+ * Graph Print.
+ */
 void print_graph(graph_t *g);
 
+/*
+ * Graph Traversals - DFS and BFS
+ */
 typedef void (*graphtraversalcb)(graph_vertex_t *v);
-int graph_dfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
+int graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
+              graphtraversalcb cb);
 int graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb);
 
+/*
+ * Graph utility functions.
+ */
 graph_t *
-graph_from_adjmatrix(int **adjm, uint64_t numvertices);
+graph_from_adjmatrix(int **adjm, uint64_t numvertices, bool isdirected);
+
+/*
+ * Graph Shortest Path Algos.
+ */
+bool has_cycle(graph_t *g);
+int shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst);
