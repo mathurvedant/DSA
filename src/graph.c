@@ -303,8 +303,8 @@ done:
 
 static int
 graph_dfs_connected(graph_t *g, graph_vertex_t *start,
-                    bool *visited, bool *has_cycle,
-                    graphtraversalcb cb)
+                    bool *visited, bool *callstack,
+                    bool *has_cycle, graphtraversalcb cb)
 {
     int error = 0;
     dsa_stack_t *st = NULL;
@@ -334,6 +334,7 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
         // Mark as visited
         if (!visited[curr_vertex->idx]) {
             visited[curr_vertex->idx] = true;
+            callstack[curr_vertex->idx] = true;
             if (cb) {
                 cb(curr_vertex);
             }
@@ -346,6 +347,8 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
             if (!visited[v->idx]) {
                 dsa_stack_push(st, (uint64_t)(curr_edge->dst));
             } else {
+                // Parent tracking based logic for
+                // undirected graphs.
                 if (!g->is_directed) {
                     if (v != parent) {
                         if (has_cycle) {
@@ -353,8 +356,12 @@ graph_dfs_connected(graph_t *g, graph_vertex_t *start,
                         }
                     }
                 } else {
-                    if (has_cycle) {
-                        *has_cycle = true;
+                    // Callstack tracking based logic
+                    // for directed graphs.
+                    if (callstack[v->idx]) {
+                        if (has_cycle) {
+                            *has_cycle = true;
+                        }
                     }
                 }
             }
@@ -371,12 +378,21 @@ done:
     return error;
 }
 
+static void
+reset_callstack(bool *callstack, uint64_t numvertices)
+{
+    for (int i = 0; i < numvertices; i++) {
+        callstack[i] = false;
+    }
+}
+
 int
 graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
           graphtraversalcb cb)
 {
     int error = 0;
     bool *visited = NULL;
+    bool *incallstack = NULL;
     uint64_t num_vertices = 0;
     graph_vertex_t *start = NULL;
 
@@ -397,14 +413,23 @@ graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
         error = ENOMEM;
         goto done;
     }
+
+    incallstack = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (incallstack == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
     for (int i = 0; i < num_vertices; i++) {
         visited[i] = false;
+        incallstack[i] = false;
     }
 
     // DFS
     {
         /* DFS from given start vertex. */
-        error = graph_dfs_connected(g, start, visited, has_cycle, cb);
+        error = graph_dfs_connected(g, start, visited, incallstack,
+                                    has_cycle, cb);
         if (error) {
             goto done;
         }
@@ -416,7 +441,9 @@ graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
         for (int i = 0; i < num_vertices; i++) {
             graph_vertex_t *v = find_vertex_from_index(g, i);
             if (visited[i] == false) {
-                error = graph_dfs_connected(g, v, visited, has_cycle, cb);
+                reset_callstack(incallstack, num_vertices);
+                error = graph_dfs_connected(g, v, visited, incallstack,
+                                            has_cycle, cb);
                 if (error) {
                     goto done;
                 }
@@ -425,6 +452,12 @@ graph_dfs(graph_t *g, uint64_t start_vertex, bool *has_cycle,
     }
 
 done:
+
+    if (incallstack) {
+        free(incallstack);
+    }
+
+
     if (visited) {
         free(visited);
     }
@@ -524,6 +557,7 @@ graph_bfs(graph_t *g, uint64_t start_vertex, graphtraversalcb cb)
         error = ENOMEM;
         goto done;
     }
+
     for (int i = 0; i < num_vertices; i++) {
         visited[i] = false;
     }
