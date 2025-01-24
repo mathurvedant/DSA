@@ -834,25 +834,6 @@ test_graph_undirected()
     printf("\n\t\tGraph Has Cycle - %s", has_cycle(g) ? "True" : "False");
     printf("\n");
 
-#if 0
-    printf("\n\t\tShortest Path from Vertex 10 to 7 - ");
-    shortest_path_undirected(g, 10, 7);
-    printf("\n");
-
-    printf("\n\t\tShortest Path from Vertex 6 to 1 - ");
-    shortest_path_undirected(g, 6, 1);
-    printf("\n");
-
-
-    printf("\n\t\tShortest Path from Vertex 1 to 8 - ");
-    shortest_path_undirected(g, 1, 8);
-    printf("\n");
-
-    printf("\n\t\tShortest Path from Vertex 2 to 5 - ");
-    shortest_path_undirected(g, 2, 5);
-    printf("\n");
-#endif
-
 done:
     if (g != NULL) {
         delete_graph(g);
@@ -1082,6 +1063,82 @@ test_graph_cycle()
     test_graph_cycle_directed_no();
 }
 
+static void
+test_graph_shortest_path()
+{
+    int error = 0;
+    graph_t *g = NULL;
+    const uint64_t NUM_VERTICES = 9;
+    bool directed = false;
+
+    printf("\n\tTesting Graph Shortest Path...");
+
+    printf("\n\t\tCreating Graph...");
+    g = create_graph(NUM_VERTICES, directed);
+    if (g == NULL) {
+        printf("\n\t\tFailed to create graph!");
+        goto done;
+    }
+
+    printf("\n\t\tAdding Vertices...");
+    for (int i = 0; i < NUM_VERTICES; i++) {
+        error = add_vertex(g, i);
+        if (error) {
+            printf("\n\t\t\tFailed to add vertex %d", i+1);
+            goto done;
+        }
+        printf("\n\t\t\tAdded vertex %d", i);
+    }
+
+    printf("\n\t\tAdding Edges...");
+
+    add_edge(g, 0, 1, 4);
+    add_edge(g, 0, 7, 8);
+
+    add_edge(g, 1, 2, 8);
+    add_edge(g, 1, 7, 11);
+
+    add_edge(g, 2, 3, 7);
+    add_edge(g, 2, 8, 2);
+    add_edge(g, 2, 5, 4);
+
+    add_edge(g, 3, 5, 14);
+    add_edge(g, 3, 4, 9);
+
+    add_edge(g, 4, 5, 10);
+
+    add_edge(g, 5, 6, 2);
+
+    add_edge(g, 6, 8, 6);
+    add_edge(g, 6, 7, 1);
+
+    add_edge(g, 7, 8, 7);
+
+    print_graph(g);
+    printf("\n");
+
+    shortest_path_dijkstra(g, 0, 4);
+    printf("\n");
+
+    shortest_path_dijkstra(g, 0, 2);
+    printf("\n");
+
+    shortest_path_dijkstra(g, 7, 3);
+    printf("\n");
+
+    shortest_path_dijkstra(g, 4, 1);
+    printf("\n");
+
+    shortest_path_dijkstra(g, 8, 0);
+    printf("\n");
+
+done:
+    if (g != NULL) {
+        delete_graph(g);
+    }
+    printf("\n");
+}
+
 void
 test_graph()
 {
@@ -1089,6 +1146,7 @@ test_graph()
     test_graph_directed();
     test_graph_adjm_to_adjlist();
     test_graph_cycle();
+    test_graph_shortest_path();
 }
 
 static void

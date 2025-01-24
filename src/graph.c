@@ -238,7 +238,7 @@ print_graph(graph_t *g)
     printf("\n\t\t\tAdjacency List: ");
     for (int i = 0; i < g->num_vertices; i++) {
         graph_vertex_t *vertex = &g->vertices[i];
-        printf("\n\t\t\t\t Key: %llu --> ", vertex->key);
+        printf("\n\t\t\t\t Key (Idx: %d): %llu --> ", vertex->idx, vertex->key);
         graph_edge_t *curr_edge = vertex->edges;
         while (curr_edge != NULL) {
             if (curr_edge->weight > 0) {
@@ -658,3 +658,157 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
 done:
     return error;
 }
+
+static graph_vertex_t *
+vertex_with_min_distance(graph_t *g, uint64_t *dist, bool *visited)
+{
+    graph_vertex_t *v = NULL;
+    uint64_t min = UINT64_MAX;;
+    uint16_t min_idx = -1;
+
+    for (int i = 0; i < g->num_vertices; i++) {
+        if (!visited[i] && (dist[i] <= min)) {
+            min_idx = i;
+            min = dist[i];
+        }
+    }
+
+    if (min_idx >= 0) {
+        v = find_vertex_from_index(g, min_idx);
+    }
+
+    return v;
+}
+
+static void
+print_path_helper(uint64_t *parents, int start_idx, int end_idx)
+{
+    if (end_idx == start_idx) {
+        return;
+    }
+
+    print_path_helper(parents, start_idx, parents[end_idx]);
+    printf("%llu --> ", parents[end_idx]);
+}
+
+static void
+print_shortest_path_info(graph_vertex_t *start, graph_vertex_t *end,
+                         uint64_t *dist, uint64_t *parents, int num_vertices)
+{
+    printf("\n\t\tShortest Path from %llu to %llu - ", start->key, end->key);
+
+    printf("\n\t\t\tDistance Array - \t");
+    for (int i = 0 ; i < num_vertices; i++) {
+        printf(" %5llu ", dist[i]);
+    }
+
+    printf("\n\t\t\tParents Array - \t");
+    for (int i = 0 ; i < num_vertices; i++) {
+        printf(" %5llu ", parents[i]);
+    }
+
+    printf("\n\t\t\tPath - \t");
+    print_path_helper(parents, start->idx, end->idx);
+    printf("%d ", end->idx);
+}
+
+int
+shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
+{
+    int error = 0;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+    graph_vertex_t *end = NULL;
+    uint64_t *dist = NULL;
+    uint64_t *parents = NULL;
+    bool *visited = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, src);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    end = find_vertex_from_key(g, dst);
+    if (end == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+
+    dist = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    if (dist == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    parents = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    if (parents == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        dist[i] = UINT64_MAX;
+        parents[i] = UINT64_MAX;
+        visited[i] = false;
+    }
+
+    dist[start->idx] = 0;
+    parents[start->idx] = start->key;
+
+    while (true) {
+        graph_vertex_t *curr_vertex = NULL;
+        graph_edge_t *curr_edge = NULL;
+
+        curr_vertex = vertex_with_min_distance(g, dist, visited);
+        if (visited[curr_vertex->idx]) {
+            break;
+        }
+
+        visited[curr_vertex->idx] = true;
+
+        curr_edge = curr_vertex->edges;
+        while (curr_edge != NULL) {
+            int dist_idx = curr_edge->dst->idx;
+            uint64_t pathsum = dist[curr_vertex->idx] + curr_edge->weight;
+            if (pathsum < dist[dist_idx]) {
+                dist[dist_idx] = pathsum;
+                parents[dist_idx] = curr_vertex->key;
+            }
+            curr_edge = curr_edge->edge_next;
+        }
+    }
+
+
+    print_shortest_path_info(start, end, dist, parents, num_vertices);
+
+done:
+
+    if (visited) {
+        free(visited);
+    }
+
+    if (parents) {
+        free(parents);
+    }
+
+    if (dist) {
+        free(dist);
+    }
+
+    return error;
+}
+
