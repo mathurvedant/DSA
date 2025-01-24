@@ -783,10 +783,12 @@ shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
         curr_edge = curr_vertex->edges;
         while (curr_edge != NULL) {
             int dist_idx = curr_edge->dst->idx;
-            uint64_t pathsum = dist[curr_vertex->idx] + curr_edge->weight;
-            if (pathsum < dist[dist_idx]) {
-                dist[dist_idx] = pathsum;
-                parents[dist_idx] = curr_vertex->key;
+            if (!visited[dist_idx]) {
+                uint64_t pathsum = dist[curr_vertex->idx] + curr_edge->weight;
+                if (pathsum < dist[dist_idx]) {
+                    dist[dist_idx] = pathsum;
+                    parents[dist_idx] = curr_vertex->key;
+                }
             }
             curr_edge = curr_edge->edge_next;
         }
