@@ -241,8 +241,8 @@ print_graph(graph_t *g)
         printf("\n\t\t\t\t Key: %llu --> ", vertex->key);
         graph_edge_t *curr_edge = vertex->edges;
         while (curr_edge != NULL) {
-            if (curr_edge->weight > 0) {
-                printf("%llu (wt: %llu) ---> ", curr_edge->dst->key, curr_edge->weight);
+            if (curr_edge->weight != 0) {
+                printf("%llu (wt: %lld) ---> ", curr_edge->dst->key, curr_edge->weight);
             } else {
                 printf("%llu ---> ", curr_edge->dst->key);
             }
@@ -607,22 +607,191 @@ done:
     return has_cycle;
 }
 
+static graph_vertex_t *
+vertex_with_min_distance(graph_t *g, int64_t *dist, bool *visited)
+{
+    graph_vertex_t *v = NULL;
+    uint64_t min = INT64_MAX;;
+    uint16_t min_idx = -1;
+
+    for (int i = 0; i < g->num_vertices; i++) {
+        if (!visited[i] && (dist[i] <= min)) {
+            min_idx = i;
+            min = dist[i];
+        }
+    }
+
+    if (min_idx >= 0) {
+        v = find_vertex_from_index(g, min_idx);
+    }
+
+    return v;
+}
 
 static void
-print_graph_vertex(graph_vertex_t *v)
+print_path_helper(uint64_t *parents, int start_idx, int end_idx)
 {
-    if (v) {
-        printf("%llu ", v->key);
+    if (end_idx == start_idx) {
+        return;
+    }
+
+    print_path_helper(parents, start_idx, parents[end_idx]);
+    printf("%llu --> ", parents[end_idx]);
+}
+
+static void
+print_shortest_path_info(graph_vertex_t *start, graph_vertex_t *end,
+                         int64_t *dist, uint64_t *parents, int num_vertices)
+{
+    bool path_valid = (dist[end->idx] == INT64_MAX) ? false : true;
+
+    printf("\n\t\tShortest Path from %llu to %llu - ", start->key, end->key);
+
+    if (!path_valid) {
+        printf("No Path Found");
+    }
+
+    printf("\n\t\t\tVertices - \t\t");
+    for (int i = 0 ; i < num_vertices; i++) {
+        printf(" %5d ", i);
+    }
+
+    printf("\n\t\t\tDistance Array - \t");
+    for (int i = 0 ; i < num_vertices; i++) {
+        if (dist[i] == INT64_MAX) {
+            printf(" %5s ", "*");
+        } else {
+            printf(" %5lld ", dist[i]);
+        }
+    }
+
+    printf("\n\t\t\tParents Array - \t");
+    for (int i = 0 ; i < num_vertices; i++) {
+        if (parents[i] == INT64_MAX) {
+            printf(" %5s ", "*");
+        } else {
+            printf(" %5llu ", parents[i]);
+        }
+    }
+
+    if (path_valid) {
+        printf("\n\t\t\tPath - \t");
+        print_path_helper(parents, start->idx, end->idx);
+        printf("%d ", end->idx);
     }
 }
 
+int
+shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
+{
+    int error = 0;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+    graph_vertex_t *end = NULL;
+    int64_t *dist = NULL;
+    uint64_t *parents = NULL;
+    bool *visited = NULL;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+
+    start = find_vertex_from_key(g, src);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    end = find_vertex_from_key(g, dst);
+    if (end == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
+    if (dist == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    parents = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    if (parents == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    visited = (bool *)malloc(sizeof(bool) * num_vertices);
+    if (visited == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        dist[i] = INT64_MAX;
+        parents[i] = UINT64_MAX;
+        visited[i] = false;
+    }
+
+    dist[start->idx] = 0;
+    parents[start->idx] = start->key;
+
+    while (true) {
+        graph_vertex_t *curr_vertex = NULL;
+        graph_edge_t *curr_edge = NULL;
+
+        curr_vertex = vertex_with_min_distance(g, dist, visited);
+        if (visited[curr_vertex->idx]) {
+            break;
+        }
+
+        visited[curr_vertex->idx] = true;
+
+        curr_edge = curr_vertex->edges;
+        while (curr_edge != NULL) {
+            int dist_idx = curr_edge->dst->idx;
+            if (!visited[dist_idx]) {
+                uint64_t pathsum = dist[curr_vertex->idx] + curr_edge->weight;
+                if (pathsum < dist[dist_idx]) {
+                    dist[dist_idx] = pathsum;
+                    parents[dist_idx] = curr_vertex->key;
+                }
+            }
+            curr_edge = curr_edge->edge_next;
+        }
+    }
+
+
+    print_shortest_path_info(start, end, dist, parents, num_vertices);
+
+done:
+
+    if (visited) {
+        free(visited);
+    }
+
+    if (parents) {
+        free(parents);
+    }
+
+    if (dist) {
+        free(dist);
+    }
+
+    return error;
+}
 
 int
 shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
 {
     int error = 0;
     bool *visited = NULL;
+    int64_t *dist = NULL;
+    uint64_t *parents = NULL;
     uint64_t num_vertices = 0;
+    simple_q *q = NULL;
     graph_vertex_t *start = NULL;
     graph_vertex_t *end = NULL;
 
@@ -650,11 +819,173 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
         goto done;
     }
 
-    for (int i = 0; i < num_vertices; i++) {
-        visited[i] = false;
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
+    if (dist == NULL) {
+        error = ENOMEM;
+        goto done;
     }
 
+    parents = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    if (parents == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        visited[i] = false;
+        dist[i] = INT64_MAX;
+        parents[i] = UINT64_MAX;
+    }
+
+    q = create_simple_q(num_vertices);
+    if (q == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    dist[start->idx] = 0;
+    parents[start->idx] = 0;
+    simple_q_enqueue(q, (uint64_t)(start));
+
+    while (!simple_q_is_empty(q)) {
+        graph_vertex_t *v = NULL;
+        graph_edge_t *e = NULL;
+        uint64_t temp = 0;
+
+        simple_q_dequeue(q, &temp);
+        v = (graph_vertex_t *)(temp);
+
+        e = v->edges;
+        while (e != NULL) {
+            if (!visited[e->dst->idx]) {
+                visited[e->dst->idx] = true;
+                parents[e->dst->idx] = v->key;
+                dist[e->dst->idx] = dist[v->idx] + 1;
+                simple_q_enqueue(q, (uint64_t)(e->dst));
+            }
+            e = e->edge_next;
+        }
+    }
+
+    print_shortest_path_info(start, end, dist, parents, num_vertices);
 
 done:
+    if (q) {
+        destroy_simple_q(q);
+    }
+
+    if (parents) {
+        free(parents);
+    }
+
+    if (dist) {
+        free(dist);
+    }
+
+    if (visited) {
+        free(visited);
+    }
     return error;
 }
+
+static bool
+relax_all_edges(graph_t *g, int64_t *dist, uint64_t *parents)
+{
+    bool dist_updated = false;
+    graph_vertex_t *v = NULL;
+    graph_edge_t *e = NULL;
+
+    for (int i = 0; i < g->num_vertices; i++) {
+        v = &g->vertices[i];
+        e = v->edges;
+        while (e != NULL) {
+            graph_vertex_t *src = e->src;
+            graph_vertex_t *dst = e->dst;
+            if ((dist[src->idx] != INT64_MAX) &&
+                 (dist[dst->idx] > dist[src->idx] + e->weight)) {
+                dist[dst->idx] = dist[src->idx] + e->weight;
+                parents[dst->idx] = src->key;
+                dist_updated = true;
+            }
+            e = e->edge_next;
+        }
+    }
+
+    return dist_updated;
+}
+
+int
+shortest_path_bellmanford(graph_t *g, uint64_t src, uint64_t dst)
+{
+    int error = 0;
+    int64_t *dist = NULL;
+    uint64_t *parents = NULL;
+    uint64_t num_vertices = 0;
+    graph_vertex_t *start = NULL;
+    graph_vertex_t *end = NULL;
+    uint64_t relax = 0;
+
+    if (g == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+    num_vertices = g->num_vertices;
+    relax = num_vertices - 1;
+
+    start = find_vertex_from_key(g, src);
+    if (start == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    end = find_vertex_from_key(g, dst);
+    if (end == NULL) {
+        error = EINVAL;
+        goto done;
+    }
+
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
+    if (dist == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    parents = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    if (parents == NULL) {
+        error = ENOMEM;
+        goto done;
+    }
+
+    for (int i = 0; i < num_vertices; i++) {
+        dist[i] = INT64_MAX;
+        parents[i] = UINT64_MAX;
+    }
+
+    dist[start->idx] = 0;
+    parents[start->idx] = 0;
+
+    while (relax > 0) {
+        relax_all_edges(g, dist, parents);
+        --relax;
+    }
+
+    /* Negative cycle detection. */
+    if (relax_all_edges(g, dist, parents)) {
+        printf("\n\t\tNegative Cycle Detected");
+        goto done;
+    }
+
+    print_shortest_path_info(start, end, dist, parents, num_vertices);
+
+done:
+    if (parents) {
+        free(parents);
+    }
+
+    if (dist) {
+        free(dist);
+    }
+
+    return error;
+}
+
