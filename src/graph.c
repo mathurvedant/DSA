@@ -241,8 +241,8 @@ print_graph(graph_t *g)
         printf("\n\t\t\t\t Key: %llu --> ", vertex->key);
         graph_edge_t *curr_edge = vertex->edges;
         while (curr_edge != NULL) {
-            if (curr_edge->weight > 0) {
-                printf("%llu (wt: %llu) ---> ", curr_edge->dst->key, curr_edge->weight);
+            if (curr_edge->weight != 0) {
+                printf("%llu (wt: %lld) ---> ", curr_edge->dst->key, curr_edge->weight);
             } else {
                 printf("%llu ---> ", curr_edge->dst->key);
             }
@@ -608,10 +608,10 @@ done:
 }
 
 static graph_vertex_t *
-vertex_with_min_distance(graph_t *g, uint64_t *dist, bool *visited)
+vertex_with_min_distance(graph_t *g, int64_t *dist, bool *visited)
 {
     graph_vertex_t *v = NULL;
-    uint64_t min = UINT64_MAX;;
+    uint64_t min = INT64_MAX;;
     uint16_t min_idx = -1;
 
     for (int i = 0; i < g->num_vertices; i++) {
@@ -641,9 +641,9 @@ print_path_helper(uint64_t *parents, int start_idx, int end_idx)
 
 static void
 print_shortest_path_info(graph_vertex_t *start, graph_vertex_t *end,
-                         uint64_t *dist, uint64_t *parents, int num_vertices)
+                         int64_t *dist, uint64_t *parents, int num_vertices)
 {
-    bool path_valid = (dist[end->idx] == UINT64_MAX) ? false : true;
+    bool path_valid = (dist[end->idx] == INT64_MAX) ? false : true;
 
     printf("\n\t\tShortest Path from %llu to %llu - ", start->key, end->key);
 
@@ -658,16 +658,16 @@ print_shortest_path_info(graph_vertex_t *start, graph_vertex_t *end,
 
     printf("\n\t\t\tDistance Array - \t");
     for (int i = 0 ; i < num_vertices; i++) {
-        if (dist[i] == UINT64_MAX) {
+        if (dist[i] == INT64_MAX) {
             printf(" %5s ", "*");
         } else {
-            printf(" %5llu ", dist[i]);
+            printf(" %5lld ", dist[i]);
         }
     }
 
     printf("\n\t\t\tParents Array - \t");
     for (int i = 0 ; i < num_vertices; i++) {
-        if (parents[i] == UINT64_MAX) {
+        if (parents[i] == INT64_MAX) {
             printf(" %5s ", "*");
         } else {
             printf(" %5llu ", parents[i]);
@@ -688,7 +688,7 @@ shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
     uint64_t num_vertices = 0;
     graph_vertex_t *start = NULL;
     graph_vertex_t *end = NULL;
-    uint64_t *dist = NULL;
+    int64_t *dist = NULL;
     uint64_t *parents = NULL;
     bool *visited = NULL;
 
@@ -711,7 +711,7 @@ shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
     }
 
 
-    dist = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
     if (dist == NULL) {
         error = ENOMEM;
         goto done;
@@ -730,7 +730,7 @@ shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst)
     }
 
     for (int i = 0; i < num_vertices; i++) {
-        dist[i] = UINT64_MAX;
+        dist[i] = INT64_MAX;
         parents[i] = UINT64_MAX;
         visited[i] = false;
     }
@@ -788,7 +788,7 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
 {
     int error = 0;
     bool *visited = NULL;
-    uint64_t *dist = NULL;
+    int64_t *dist = NULL;
     uint64_t *parents = NULL;
     uint64_t num_vertices = 0;
     simple_q *q = NULL;
@@ -819,7 +819,7 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
         goto done;
     }
 
-    dist = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
     if (dist == NULL) {
         error = ENOMEM;
         goto done;
@@ -833,7 +833,7 @@ shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst)
 
     for (int i = 0; i < num_vertices; i++) {
         visited[i] = false;
-        dist[i] = UINT64_MAX;
+        dist[i] = INT64_MAX;
         parents[i] = UINT64_MAX;
     }
 
@@ -889,7 +889,7 @@ done:
 }
 
 static bool
-relax_all_edges(graph_t *g, uint64_t *dist, uint64_t *parents)
+relax_all_edges(graph_t *g, int64_t *dist, uint64_t *parents)
 {
     bool dist_updated = false;
     graph_vertex_t *v = NULL;
@@ -901,7 +901,7 @@ relax_all_edges(graph_t *g, uint64_t *dist, uint64_t *parents)
         while (e != NULL) {
             graph_vertex_t *src = e->src;
             graph_vertex_t *dst = e->dst;
-            if ((dist[src->idx] != UINT64_MAX) &&
+            if ((dist[src->idx] != INT64_MAX) &&
                  (dist[dst->idx] > dist[src->idx] + e->weight)) {
                 dist[dst->idx] = dist[src->idx] + e->weight;
                 parents[dst->idx] = src->key;
@@ -918,7 +918,7 @@ int
 shortest_path_bellmanford(graph_t *g, uint64_t src, uint64_t dst)
 {
     int error = 0;
-    uint64_t *dist = NULL;
+    int64_t *dist = NULL;
     uint64_t *parents = NULL;
     uint64_t num_vertices = 0;
     graph_vertex_t *start = NULL;
@@ -944,7 +944,7 @@ shortest_path_bellmanford(graph_t *g, uint64_t src, uint64_t dst)
         goto done;
     }
 
-    dist = (uint64_t *)malloc(sizeof(uint64_t) * num_vertices);
+    dist = (int64_t *)malloc(sizeof(int64_t) * num_vertices);
     if (dist == NULL) {
         error = ENOMEM;
         goto done;
@@ -957,7 +957,7 @@ shortest_path_bellmanford(graph_t *g, uint64_t src, uint64_t dst)
     }
 
     for (int i = 0; i < num_vertices; i++) {
-        dist[i] = UINT64_MAX;
+        dist[i] = INT64_MAX;
         parents[i] = UINT64_MAX;
     }
 

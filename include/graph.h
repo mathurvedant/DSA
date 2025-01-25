@@ -36,7 +36,7 @@ typedef struct graph_vertex_s {
 typedef struct graph_edge_s {
     graph_vertex_t *src;
     graph_vertex_t *dst;
-    uint64_t weight;
+    int64_t weight;
     struct graph_edge_s *edge_next;
 } graph_edge_t;
 
