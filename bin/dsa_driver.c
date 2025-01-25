@@ -1143,6 +1143,7 @@ test_graph_shortest_path()
     print_graph(g);
     printf("\n");
 
+    printf("\n\t\tDijkstra - ");
     shortest_path_dijkstra(g, 0, 4);
     printf("\n");
 
@@ -1156,6 +1157,22 @@ test_graph_shortest_path()
     printf("\n");
 
     shortest_path_dijkstra(g, 8, 0);
+    printf("\n");
+
+    printf("\n\t\tBellman Ford - ");
+    shortest_path_bellmanford(g, 0, 4);
+    printf("\n");
+
+    shortest_path_bellmanford(g, 0, 2);
+    printf("\n");
+
+    shortest_path_bellmanford(g, 7, 3);
+    printf("\n");
+
+    shortest_path_bellmanford(g, 4, 1);
+    printf("\n");
+
+    shortest_path_bellmanford(g, 8, 0);
     printf("\n");
 
 done:
