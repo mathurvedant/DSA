@@ -94,5 +94,5 @@ bool has_cycle(graph_t *g);
 /*
  * Graph Shortest Path Algos.
  */
-int shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst);
 int shortest_path_dijkstra(graph_t *g, uint64_t src, uint64_t dst);
+int shortest_path_undirected(graph_t *g, uint64_t src, uint64_t dst);
